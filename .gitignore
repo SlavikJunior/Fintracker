@@ -44,3 +44,4 @@ idea/*
 .mvn/*
 mvnw
 mvnw.cmd
+secrets/*

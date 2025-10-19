@@ -8,7 +8,7 @@ import java.util.List;
 public interface CRUD {
 
     <T extends CRUDable> void create(T entity, List<Object> properties);
-    <T extends CRUDable> void read(T entity);
+    <T extends CRUDable> T read(T entity, Integer id);
     <T extends CRUDable> void update(T entity);
     <T extends CRUDable> void delete(T entity);
 }
