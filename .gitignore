@@ -40,3 +40,7 @@ build/
 .smarttomcat/*
 out/*
 idea/*
+.idea/*
+.mvn/*
+mvnw
+mvnw.cmd
