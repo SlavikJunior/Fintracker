@@ -3,6 +3,7 @@ package com.slavikjunior.orm
 import com.slavikjunior.annotations.CreateMethod
 import com.slavikjunior.annotations.DeleteMethod
 import com.slavikjunior.annotations.ReadMethod
+import com.slavikjunior.annotations.ReadMethodByColumnAndValue
 import com.slavikjunior.annotations.UpdateMethod
 import com.slavikjunior.models.Person
 
@@ -63,7 +64,8 @@ object Manager : CRUD {
         return method?.invoke(daoClass.newInstance(), id) as T
     }
 
-    fun <T : Class<CRUDable?>?> readWithColumnAndValue(entity: T?, columnName: String, value: String): T? {
+    // пока просто враппер приходит из параметров, позже можно тоже как-то упростить жизнь юзеру, допустим enum
+    fun <T : CRUDable?> readWithColumnAndValue(entity: T?, wrapper: Wrapper): T? {
         // получаем полное имя дао класса для сущности
         val daoClassName = "$DAO_CLASSES_PATH${entity?.javaClass?.simpleName}Dao"
         // получаем дао класс сущности
@@ -73,10 +75,9 @@ object Manager : CRUD {
         // забираем все методы дао класса
         val methods = daoClass.methods
         // ищем create метод
-        val method = methods.find { method -> method.isAnnotationPresent(ReadMethod::class.java) }
+        val method = methods.find { method -> method.isAnnotationPresent(ReadMethodByColumnAndValue::class.java) }
         // инвокаем его на переданных параметрах
-//        return method?.invoke(daoClass.newInstance(), id) as T
-        return null
+        return method?.invoke(daoClass.newInstance(), wrapper) as T
     }
 
     override fun <T : CRUDable?> update(entity: T?) {

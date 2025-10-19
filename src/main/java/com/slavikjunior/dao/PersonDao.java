@@ -1,10 +1,8 @@
 package com.slavikjunior.dao;
 
-import com.slavikjunior.annotations.CreateMethod;
-import com.slavikjunior.annotations.Database;
-import com.slavikjunior.annotations.ReadMethod;
-import com.slavikjunior.annotations.Table;
+import com.slavikjunior.annotations.*;
 import com.slavikjunior.models.Person;
+import com.slavikjunior.orm.Wrapper;
 import com.slavikjunior.secrets.Keys;
 import kotlin.Pair;
 
@@ -72,17 +70,34 @@ public class PersonDao {
         return person;
     }
 
-    public Person readUserByColumnAndValue(String columnName, String columnValue) throws SQLException {
+    @ReadMethodByColumnAndValue
+    public Person readUserByColumnAndValue(Wrapper wrapper) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
 
+        if (wrapper == null)
+            return null;
+
+        String columnName = wrapper.getColumnName();
+
+        String stringValue = null;
+        Integer intValue = null;
+        if (wrapper.isContainsStringValue())
+            stringValue = wrapper.getStringValue();
+        else
+            intValue = wrapper.getIntValue();
+
+
         var ps = connection.prepareStatement(
                 """
-                        select * from %s where %s and value = ?
+                        select * from %s where %s = ?
                         """.formatted(Keys.tableName, columnName)
         );
-        ps.setString(1, columnValue);
 
+        if (wrapper.isContainsStringValue())
+            ps.setString(1, stringValue);
+        else
+            ps.setInt(1, intValue);
 
         ResultSet rs = ps.executeQuery();
         Person person = null;

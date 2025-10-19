@@ -39,3 +39,7 @@ annotation class UpdateMethod
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
 annotation class DeleteMethod
+
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.FUNCTION)
+annotation class ReadMethodByColumnAndValue

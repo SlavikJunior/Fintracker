@@ -44,4 +44,4 @@ idea/*
 .mvn/*
 mvnw
 mvnw.cmd
-secrets/*
+src/main/java/com/slavikjunior/secrets/*
