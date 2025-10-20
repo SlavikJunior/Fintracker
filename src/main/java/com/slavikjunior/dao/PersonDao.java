@@ -2,13 +2,11 @@ package com.slavikjunior.dao;
 
 import com.slavikjunior.annotations.*;
 import com.slavikjunior.models.Person;
-import com.slavikjunior.orm.Wrapper;
 import com.slavikjunior.secrets.Keys;
-import kotlin.Pair;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
 
 import static com.slavikjunior.db_manager.DbConnectionManagerKt.getConnection;
 
@@ -19,7 +17,7 @@ public class PersonDao {
     private Connection connection = getConnection(Keys.databaseName, Keys.user, Keys.password);
 
     @CreateMethod
-    public void createUser(String firstName, String lastName, String email, String gender, String ipAddress, String country) throws SQLException {
+    public boolean createUser(String firstName, String lastName, String email, String gender, String ipAddress, String country) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
 
@@ -36,7 +34,7 @@ public class PersonDao {
         ps.setString(4, gender);
         ps.setString(5, ipAddress);
         ps.setString(6, country);
-        ps.executeUpdate();
+        return ps.execute();
     }
 
     @ReadMethod
@@ -70,34 +68,40 @@ public class PersonDao {
         return person;
     }
 
-    @ReadMethodByColumnAndValue
-    public Person readUserByColumnAndValue(Wrapper wrapper) throws SQLException {
+    @ReadMethodByColumnsAndValues
+    public <E> Person readUserByColumnsAndValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
 
-        if (wrapper == null)
-            return null;
+        int i = 0;
+        StringBuilder sb = new StringBuilder("select * from " + Keys.tableName + " where ");
+        for (var entry : columnsToValues.entrySet()) {
+            String columnName = entry.getKey();
+            E value = entry.getValue();
 
-        String columnName = wrapper.getColumnName();
+            var valueClass = value.getClass();
+            if (
+                    valueClass.equals(String.class)
+            ) {
+                sb.append(columnName).append(" = '%s'");
+                if (i < columnsToValues.size() - 1)
+                    sb.append(" and ");
+            }
 
-        String stringValue = null;
-        Integer intValue = null;
-        if (wrapper.isContainsStringValue())
-            stringValue = wrapper.getStringValue();
-        else
-            intValue = wrapper.getIntValue();
+            else if (
+                    valueClass.equals(Integer.class)
+            ) {
+                sb.append(columnName).append(" = %d");
+                if (i < columnsToValues.size() - 1)
+                    sb.append(" and ");
+            }
+            i++;
+        }
 
-
+        var values = columnsToValues.values().stream().toArray();
         var ps = connection.prepareStatement(
-                """
-                        select * from %s where %s = ?
-                        """.formatted(Keys.tableName, columnName)
+                sb.toString().formatted(values)
         );
-
-        if (wrapper.isContainsStringValue())
-            ps.setString(1, stringValue);
-        else
-            ps.setInt(1, intValue);
 
         ResultSet rs = ps.executeQuery();
         Person person = null;

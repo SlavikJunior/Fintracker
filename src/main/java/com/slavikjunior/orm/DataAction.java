@@ -6,5 +6,5 @@ public enum DataAction {
     READ,
     UPDATE,
     DELETE,
-    ReadByColumnAndValue,
+    READ_BY_COLUMN_AND_VALUE,
 }
