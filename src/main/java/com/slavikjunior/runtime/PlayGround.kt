@@ -10,14 +10,14 @@ import java.lang.management.ManagementFactory
 
 fun main() {
 
-//    val person = Person(4, "Slava", "Romanov", "rvr280206@gmail.com", "male", "", "russia")
-//    Manager.create(person, person.toAnnotatedFieldsValuesListWithoutAnnotation(Id::class))
-//    val personDb = Manager.read(Person::class.java.newInstance(), 1004)
-
-    val  person = Manager.readWithColumnAndValue(Person::class.java.newInstance(), Wrapper(
+    val newPerson = Person(1010, "Sasha", "Bublic", "sbublic@mail.com", "female", "", "")
+    Manager.create(newPerson)
+    val newPersonFromDB = Manager.readWithColumnAndValue(Person::class.java.newInstance(), Wrapper(
         columnName = "firstname",
-        stringValue = "Slava",
+        stringValue = "Sasha",
         isContainsStringValue = true
     ))
-    println(person)
+    println("Созданная сущность: $newPerson")
+    println("Полученная сущность: $newPersonFromDB")
+    println("Созданная и полученная сущности равны?: ${newPerson == newPersonFromDB}")
 }

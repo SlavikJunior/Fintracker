@@ -2,10 +2,13 @@ package com.slavikjunior.orm
 
 import com.slavikjunior.annotations.CreateMethod
 import com.slavikjunior.annotations.DeleteMethod
+import com.slavikjunior.annotations.Id
 import com.slavikjunior.annotations.ReadMethod
 import com.slavikjunior.annotations.ReadMethodByColumnAndValue
 import com.slavikjunior.annotations.UpdateMethod
 import com.slavikjunior.models.Person
+import com.slavikjunior.util.toAnnotatedFieldsValuesListWithoutAnnotation
+import com.slavikjunior.util.toFieldValuesList
 
 object Manager : CRUD {
 
@@ -29,27 +32,54 @@ object Manager : CRUD {
         // забираем все методы дао класса
         val methods = daoClass.methods
         // ищем create метод
-        val method = methods.find { method -> method.isAnnotationPresent(peekAnnotationClassForMethodWithAction(action)) }
+        val method =
+            methods.find { method -> method.isAnnotationPresent(peekAnnotationClassForMethodWithAction(action)) }
         // инвокаем его на переданных параметрах
         method?.invoke(daoClass.newInstance(), *properties.toTypedArray())
     }
 
-    override fun <T : CRUDable?> create(entity: T?, properties: List<Any?>) {
+    override fun <T : CRUDable> execute(
+        entity: T,
+        action: DataAction
+    ): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun <T : CRUDable> create(entity: T, idIsAutoGenerate: Boolean) {
+        // если id генерится автоматически то мы раскатываем объект
+        // в лист пропертей, но без id, иначе -> с ним
+        val properties = if (idIsAutoGenerate)
+            entity?.toAnnotatedFieldsValuesListWithoutAnnotation(Id::class)
+        else entity?.toFieldValuesList()
+
         // получаем полное имя дао класса для сущности
         val daoClassName = "$DAO_CLASSES_PATH${entity?.javaClass?.simpleName}Dao"
         // получаем дао класс сущности
         val daoClass = Class.forName(daoClassName)
-        // забираем поля, которые надо заполнять, исключаем id-шник
-        // val fields = entity?.javaClass?.declaredFields?.filter { field -> !field.isAnnotationPresent(GeneratedValue::class.java) }?.map { field -> field.name }
         // забираем все методы дао класса
         val methods = daoClass.methods
         // ищем create метод
         val method = methods.find { method -> method.isAnnotationPresent(CreateMethod::class.java) }
-        // инвокаем его на переданных параметрах
-        method?.invoke(daoClass.newInstance(), *properties.toTypedArray())
+        // инвокаем его на параметрах
+        properties?.let { method?.invoke(daoClass.newInstance(), *it.toTypedArray()) }
     }
 
-    override fun <T : CRUDable?> read(entity: T?, id: Int?): T? {
+//    override fun <T : CRUDable?> create(entity: T, properties: List<Any?>) {
+//        // получаем полное имя дао класса для сущности
+//        val daoClassName = "$DAO_CLASSES_PATH${entity?.javaClass?.simpleName}Dao"
+//        // получаем дао класс сущности
+//        val daoClass = Class.forName(daoClassName)
+//        // забираем поля, которые надо заполнять, исключаем id-шник
+//        // val fields = entity?.javaClass?.declaredFields?.filter { field -> !field.isAnnotationPresent(GeneratedValue::class.java) }?.map { field -> field.name }
+//        // забираем все методы дао класса
+//        val methods = daoClass.methods
+//        // ищем create метод
+//        val method = methods.find { method -> method.isAnnotationPresent(CreateMethod::class.java) }
+//        // инвокаем его на переданных параметрах
+//        method?.invoke(daoClass.newInstance(), *properties.toTypedArray())
+//    }
+
+    override fun <T : CRUDable> read(entity: T?, id: Int?): T? {
         // получаем полное имя дао класса для сущности
         val daoClassName = "$DAO_CLASSES_PATH${entity?.javaClass?.simpleName}Dao"
         // получаем дао класс сущности
@@ -65,7 +95,7 @@ object Manager : CRUD {
     }
 
     // пока просто враппер приходит из параметров, позже можно тоже как-то упростить жизнь юзеру, допустим enum
-    fun <T : CRUDable?> readWithColumnAndValue(entity: T?, wrapper: Wrapper): T? {
+    fun <T : CRUDable> readWithColumnAndValue(entity: T?, wrapper: Wrapper): T? {
         // получаем полное имя дао класса для сущности
         val daoClassName = "$DAO_CLASSES_PATH${entity?.javaClass?.simpleName}Dao"
         // получаем дао класс сущности
@@ -80,11 +110,11 @@ object Manager : CRUD {
         return method?.invoke(daoClass.newInstance(), wrapper) as T
     }
 
-    override fun <T : CRUDable?> update(entity: T?) {
+    override fun <T : CRUDable> update(entity: T?) {
         TODO("Not yet implemented")
     }
 
-    override fun <T : CRUDable?> delete(entity: T?) {
+    override fun <T : CRUDable> delete(entity: T?) {
         TODO("Not yet implemented")
     }
 
@@ -94,5 +124,6 @@ object Manager : CRUD {
             DataAction.READ -> ReadMethod::class.java
             DataAction.UPDATE -> UpdateMethod::class.java
             DataAction.DELETE -> DeleteMethod::class.java
+            DataAction.ReadByColumnAndValue -> ReadMethodByColumnAndValue::class.java
         }
 }
