@@ -4,10 +4,12 @@ import com.slavikjunior.annotations.WrappedClass
 
 interface CRUD {
 
-    fun <T : CRUDable> createEntity(entity: T, idIsAutoGenerate: Boolean = true): Boolean?
-    fun <T : CRUDable> getEntityById(entityClass: Class<T>, id: Int): T?
-    fun <T : CRUDable, E> getEntityByValues(entityClass: Class<T>, columnsToValues: Map<String, @WrappedClass E>): T?
-    fun <T : CRUDable, E> updateEntity(entityClass: Class<T>, id: Int, columnsToValues: Map<String, @WrappedClass E>): Boolean
-    fun <T : CRUDable, E> updateEntityAndGet(entityClass: Class<T>, id: Int, columnsToValues: Map<String, @WrappedClass E>): T?
-    fun <T : CRUDable> delete(entity: T?)
+    fun <T : CRUDable> create(entity: T, idIsAutoGenerate: Boolean = true): Boolean?
+    fun <T : CRUDable> getById(entityClass: Class<T>, id: Int): T?
+    fun <T : CRUDable, E> getByValues(entityClass: Class<T>, columnsToValues: Map<String, @WrappedClass E>): T?
+    fun <T : CRUDable, E> update(entityClass: Class<T>, id: Int, columnsToValues: Map<String, @WrappedClass E>): Boolean
+    fun <T : CRUDable, E> updateAndGet(entityClass: Class<T>, id: Int, columnsToValues: Map<String, @WrappedClass E>): T?
+    fun <T : CRUDable, E> deleteByValues(entityClass: Class<T>, columnsToValues: Map<String, @WrappedClass E>): Boolean
+    fun <T : CRUDable> deleteById(entityClass: Class<T>, id: Int): Boolean
+    fun <T : CRUDable> deleteByEntity(entity: T): Boolean
 }

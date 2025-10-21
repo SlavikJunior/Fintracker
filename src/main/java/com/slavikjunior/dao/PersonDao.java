@@ -19,7 +19,7 @@ public class PersonDao {
     private Connection connection = getConnection(Keys.databaseName, Keys.user, Keys.password);
 
     @CreateMethod
-    public boolean createUser(String firstName, String lastName, String email, String gender, String ipAddress, String country) throws SQLException {
+    public boolean createPersonEntity(String firstName, String lastName, String email, String gender, String ipAddress, String country) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
 
@@ -41,7 +41,7 @@ public class PersonDao {
 
     // todo возможно заменить id на long
     @ReadMethod
-    public @Nullable Person readUserById(int id) throws SQLException {
+    public @Nullable Person readPersonEntityById(int id) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
 
@@ -57,7 +57,7 @@ public class PersonDao {
     }
 
     @ReadMethodByValues
-    public <E> @Nullable Person readUserByColumnsAndValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
+    public <E> @Nullable Person readPersonEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
 
@@ -90,18 +90,7 @@ public class PersonDao {
         );
 
         ResultSet rs = ps.executeQuery();
-        Person person = null;
-        while (rs.next()) {
-            person = new Person(
-                    rs.getInt(1),
-                    rs.getString(2),
-                    rs.getString(3),
-                    rs.getString(4),
-                    rs.getString(5),
-                    rs.getString(6),
-                    rs.getString(7)
-            );
-        }
+        Person person = createPerson(rs);
 
         rs.close();
         ps.close();
@@ -110,7 +99,7 @@ public class PersonDao {
 
     // todo возможно заменить id на long
     @UpdateMethod
-    public <E> boolean updateUser(int id, Map<String, @WrappedClass E> columnsToValues) throws SQLException {
+    public <E> boolean updatePersonEntityByValues(int id, Map<String, @WrappedClass E> columnsToValues) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
 
@@ -143,6 +132,44 @@ public class PersonDao {
         );
 
         return ps.executeUpdate() > 0;
+    }
+
+    @DeleteMethod
+    public <E> boolean deletePersonEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
+        if (!isConnectionEstablished())
+            throw new SQLException();
+
+        int i = 0;
+        StringBuilder sb = new StringBuilder("delete from " + Keys.tableName + "\nwhere ");
+        for (var entry : columnsToValues.entrySet()) {
+            String columnName = entry.getKey();
+            E value = entry.getValue();
+
+            // todo сейчас поддержка String и Integer, возможно добавить др типы в будующем
+            var valueClass = value.getClass();
+            if (valueClass.equals(String.class)) {
+                sb.append(columnName).append(" = '%s'");
+                if (i < columnsToValues.size() - 1)
+                    sb.append(" and ");
+            }
+
+            else if (valueClass.equals(Integer.class)) {
+                sb.append(columnName).append(" = %d");
+                if (i < columnsToValues.size() - 1)
+                    sb.append(" and ");
+            }
+            i++;
+        }
+        sb.append(';');
+
+        var values = columnsToValues.values().stream().toArray();
+        var ps = connection.prepareStatement(
+                sb.toString().formatted(values)
+        );
+
+        int cntOfChangedRows = ps.executeUpdate();
+        ps.close();
+        return cntOfChangedRows > 0;
     }
 
     private boolean isConnectionEstablished() {
