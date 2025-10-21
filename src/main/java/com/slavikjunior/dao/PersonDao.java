@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import java.util.Map;
 import static com.slavikjunior.db_manager.DbConnectionManagerKt.getConnection;
 
-public class PersonDao implements InterfaceDao {
+public class PersonDao implements InterfaceDao<Person> {
 
     private Connection connection = getConnection(Keys.databaseName, Keys.user, Keys.password);
 
@@ -54,7 +54,7 @@ public class PersonDao implements InterfaceDao {
     }
 
     @ReadMethod
-    public <T, E> @Nullable T readEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
+    public <E> @Nullable Person readEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
 
@@ -91,7 +91,7 @@ public class PersonDao implements InterfaceDao {
 
         rs.close();
         ps.close();
-        return (T) person;
+        return person;
     }
 
     // todo возможно заменить id на long

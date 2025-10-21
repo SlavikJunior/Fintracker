@@ -6,13 +6,13 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.SQLException;
 import java.util.Map;
 
-public interface InterfaceDao {
+public interface InterfaceDao<T> {
 
     @CreateMethod
     <E> boolean createEntity(Map<String, @WrappedClass E> columnsToValues) throws SQLException;
 
     @ReadMethod
-    <T, E> @Nullable T readEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException;
+    <E> @Nullable T readEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException;
 
     @UpdateMethod
     <E> boolean updateEntityByValues(int id, Map<String, @WrappedClass E> columnsToValues) throws SQLException;
