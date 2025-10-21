@@ -6,8 +6,9 @@ import java.lang.reflect.Method
 
 object Manager : CRUD {
 
+    // todo заменить потом на параметр приходящий снаружи,
+    // возможно в функции init получать его или в констукторе или фабрике
     private const val DAO_CLASSES_PATH = "com.slavikjunior.dao."
-    val name = "absa"
     fun init() {
 
     }
@@ -26,50 +27,53 @@ object Manager : CRUD {
 //        else entity.toFieldValuesList()
         else return false
 
-        // получаем полное имя дао класса для сущности
-        val daoClassName = "$DAO_CLASSES_PATH${entity?.javaClass?.simpleName}Dao"
         // получаем дао класс сущности
-        val daoClass = Class.forName(daoClassName)
-        // забираем все методы дао класса
-        val methods = daoClass.methods
+        val daoClass = getDaoClass(entity::class.java)
         // ищем create метод
-        val method = methods.find { method -> method.isAnnotationPresent(CreateMethod::class.java) } as Method
+        val method = getAnnotatedMethod(daoClass.methods, CreateMethod::class.java)
         // инвокаем его на параметрах
-        return properties.let { method.invoke(daoClass.newInstance(), *it.toTypedArray()) } as Boolean?
+        return properties.let { method?.invoke(daoClass.newInstance(), *it.toTypedArray()) } as Boolean?
     }
 
     override fun <T : CRUDable> getEntityById(entityClass: Class<T>, id: Int): T? {
-        // получаем полное имя дао класса для сущности
-        val daoClassName = "$DAO_CLASSES_PATH${entityClass.simpleName}Dao"
         // получаем дао класс сущности
-        val daoClass = Class.forName(daoClassName)
-        // забираем все методы дао класса
-        val methods = daoClass.methods
+        val daoClass = getDaoClass(entityClass)
         // ищем read метод
-        val method = methods.find { method -> method.isAnnotationPresent(ReadMethod::class.java) }
+        val method = getAnnotatedMethod(daoClass.methods, ReadMethod::class.java)
         // инвокаем его на переданных параметрах
         return method?.invoke(daoClass.newInstance(), id) as T?
     }
 
-    override fun <T : CRUDable, E> getEntityByPairsOfColumnsAndValues(
-        entityClass: Class<T>,
-        columnsToValues: Map<String, @WrappedClass E>
-    ): T? {
+    override fun <T : CRUDable, E> getEntityByPairsOfColumnsAndValues(entityClass: Class<T>, columnsToValues: Map<String, @WrappedClass E>): T? {
         // получаем дао класс сущности
         val daoClass = Class.forName("$DAO_CLASSES_PATH${entityClass.simpleName}Dao")
-        // забираем все методы дао класса
-        val methods = daoClass.methods
         // ищем create метод
-        val method = methods.find { method -> method.isAnnotationPresent(ReadMethodByColumnsAndValues::class.java) }
+        val method = getAnnotatedMethod(daoClass.methods, ReadMethodByColumnsAndValues::class.java)
         // инвокаем его на переданных параметрах
         return method?.invoke(daoClass.newInstance(), columnsToValues) as T?
     }
 
-    override fun <T : CRUDable> update(entity: T?) {
+    override fun <T : CRUDable, E> update(entityClass: Class<T>, id: Int, columnsToValues: Map<String, @WrappedClass E>): Boolean {
+        val daoClass = getDaoClass(entityClass)
+        val method = getAnnotatedMethod(daoClass.methods, UpdateMethod::class.java)
+        // инвокаем его на переданных параметрах
+        return method?.invoke(daoClass.newInstance(), id, columnsToValues) as Boolean
+    }
+
+    override fun <T : CRUDable, E> updateAndGet(entityClass: Class<T>, id: Int, columnsToValues: Map<String, @WrappedClass E>): T? {
         TODO("Not yet implemented")
     }
 
     override fun <T : CRUDable> delete(entity: T?) {
         TODO("Not yet implemented")
     }
+
+    private fun <T> getDaoClass(entityClass: Class<T>): Class<*> {
+        // получаем полное имя дао класса для сущности
+        val daoClassName = "$DAO_CLASSES_PATH${entityClass.simpleName}Dao"
+        // получаем дао класс сущности
+        return Class.forName(daoClassName)
+    }
+
+    private fun getAnnotatedMethod(methods: Array<Method>, annotationClass: Class<out Annotation>) = methods.find { method -> method.isAnnotationPresent(annotationClass) }
 }
