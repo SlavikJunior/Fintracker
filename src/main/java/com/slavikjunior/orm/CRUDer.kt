@@ -1,24 +1,12 @@
 package com.slavikjunior.orm
 
 import com.slavikjunior.annotations.*
-import com.slavikjunior.util.toAnnotatedFieldsValuesListWithoutAnnotation
 import com.slavikjunior.util.toFieldMapByColumnNames
 import java.lang.reflect.Method
 
-object Manager : CRUD {
-
-    // todo заменить потом на параметр приходящий снаружи,
-    //  возможно в функции init получать его или в констукторе или фабрике
-    private const val DAO_CLASSES_PATH = "com.slavikjunior.dao."
-
-    // todo придумать реализацию инита и дестроя + в будующем заменить .newInstance() на не депрекейтнутый
-    fun init() {
-
-    }
-
-    fun destroy() {
-
-    }
+class CRUDer(
+    private val daoClassesPath: String = "com.slavikjunior.dao."
+): CRUD {
 
     override fun <T : CRUDable> create(entity: T, idIsAutoGenerate: Boolean): Boolean {
         // получаем дао класс сущности
@@ -26,7 +14,7 @@ object Manager : CRUD {
         // ищем create метод
         val method = getAnnotatedMethod(daoClass.methods, CreateMethod::class.java)
         // инвокаем его на параметрах
-        return method?.invoke(daoClass.newInstance(), entity.toFieldMapByColumnNames()) as Boolean ?: false
+        return method?.invoke(daoClass.newInstance(), entity.toFieldMapByColumnNames()) as Boolean
     }
 
     override fun <T : CRUDable> getById(entityClass: Class<T>, id: Int) = getByValues(entityClass, mapOf("id" to id))
@@ -36,7 +24,7 @@ object Manager : CRUD {
         columnsToValues: Map<String, @WrappedClass E>
     ): T? {
         // получаем дао класс сущности
-        val daoClass = Class.forName("$DAO_CLASSES_PATH${entityClass.simpleName}Dao")
+        val daoClass = getDaoClass(entityClass)
         // ищем create метод
         val method = getAnnotatedMethod(daoClass.methods, ReadMethod::class.java)
         // инвокаем его на переданных параметрах
@@ -76,7 +64,7 @@ object Manager : CRUD {
 
     private fun <T> getDaoClass(entityClass: Class<T>): Class<*> {
         // получаем полное имя дао класса для сущности
-        val daoClassName = "$DAO_CLASSES_PATH${entityClass.simpleName}Dao"
+        val daoClassName = "$daoClassesPath${entityClass.simpleName}Dao"
         // получаем дао класс сущности
         return Class.forName(daoClassName)
     }

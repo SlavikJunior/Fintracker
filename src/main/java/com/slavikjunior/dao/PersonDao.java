@@ -2,6 +2,7 @@ package com.slavikjunior.dao;
 
 import com.slavikjunior.annotations.*;
 import com.slavikjunior.models.Person;
+import com.slavikjunior.orm.InterfaceDao;
 import com.slavikjunior.secrets.Keys;
 import org.jetbrains.annotations.Nullable;
 import java.sql.Connection;
@@ -10,14 +11,12 @@ import java.sql.SQLException;
 import java.util.Map;
 import static com.slavikjunior.db_manager.DbConnectionManagerKt.getConnection;
 
-@Database(name = Keys.databaseName)
-@Table(name = Keys.tableName)
-public class PersonDao {
+public class PersonDao implements InterfaceDao {
 
     private Connection connection = getConnection(Keys.databaseName, Keys.user, Keys.password);
 
     @CreateMethod
-    public <E> boolean createPersonEntity(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
+    public <E> boolean createEntity(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
 
@@ -55,7 +54,7 @@ public class PersonDao {
     }
 
     @ReadMethod
-    public <E> @Nullable Person readPersonEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
+    public <T, E> @Nullable T readEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
 
@@ -88,16 +87,16 @@ public class PersonDao {
         );
 
         ResultSet rs = ps.executeQuery();
-        Person person = createPerson(rs);
+        Person person = createInstanceByResultSet(rs);
 
         rs.close();
         ps.close();
-        return person;
+        return (T) person;
     }
 
     // todo возможно заменить id на long
     @UpdateMethod
-    public <E> boolean updatePersonEntityByValues(int id, Map<String, @WrappedClass E> columnsToValues) throws SQLException {
+    public <E> boolean updateEntityByValues(int id, Map<String, @WrappedClass E> columnsToValues) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
 
@@ -133,7 +132,7 @@ public class PersonDao {
     }
 
     @DeleteMethod
-    public <E> boolean deletePersonEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
+    public <E> boolean deleteEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
 
@@ -177,7 +176,7 @@ public class PersonDao {
             return false;
     }
 
-    private @Nullable Person createPerson(ResultSet rs) throws SQLException {
+    private @Nullable Person createInstanceByResultSet(ResultSet rs) throws SQLException {
         Person person = null;
         while (rs.next()) {
             person = new Person(

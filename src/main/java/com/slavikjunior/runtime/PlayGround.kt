@@ -1,17 +1,10 @@
 package com.slavikjunior.runtime
 
 import com.slavikjunior.models.Person
-import com.slavikjunior.orm.Manager
+import com.slavikjunior.orm.CRUDer
 
 fun main() {
-    val isCreated = Manager.create(Person(
-        id = 1002,
-        firstName = "Sam",
-        lastName = "Altman",
-        email = "open@ai.com",
-        gender = "male",
-        ipAddress = "localhost",
-        country = "russia"
-    ))
-    println(isCreated)
+    val CRUDer = CRUDer()
+    val person = CRUDer.updateAndGet(Person::class.java, 1012, mapOf("country" to "usa"))
+    println(person)
 }
