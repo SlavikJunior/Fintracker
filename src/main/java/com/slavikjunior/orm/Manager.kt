@@ -9,6 +9,8 @@ object Manager : CRUD {
     // todo заменить потом на параметр приходящий снаружи,
     // возможно в функции init получать его или в констукторе или фабрике
     private const val DAO_CLASSES_PATH = "com.slavikjunior.dao."
+
+    // todo придумать реализацию инита и дестроя + в будующем заменить .newInstance() на не депрекейтнутый
     fun init() {
 
     }
@@ -44,25 +46,37 @@ object Manager : CRUD {
         return method?.invoke(daoClass.newInstance(), id) as T?
     }
 
-    override fun <T : CRUDable, E> getEntityByPairsOfColumnsAndValues(entityClass: Class<T>, columnsToValues: Map<String, @WrappedClass E>): T? {
+    override fun <T : CRUDable, E> getEntityByValues(
+        entityClass: Class<T>,
+        columnsToValues: Map<String, @WrappedClass E>
+    ): T? {
         // получаем дао класс сущности
         val daoClass = Class.forName("$DAO_CLASSES_PATH${entityClass.simpleName}Dao")
         // ищем create метод
-        val method = getAnnotatedMethod(daoClass.methods, ReadMethodByColumnsAndValues::class.java)
+        val method = getAnnotatedMethod(daoClass.methods, ReadMethodByValues::class.java)
         // инвокаем его на переданных параметрах
         return method?.invoke(daoClass.newInstance(), columnsToValues) as T?
     }
 
-    override fun <T : CRUDable, E> update(entityClass: Class<T>, id: Int, columnsToValues: Map<String, @WrappedClass E>): Boolean {
+    override fun <T : CRUDable, E> updateEntity(
+        entityClass: Class<T>,
+        id: Int,
+        columnsToValues: Map<String, @WrappedClass E>
+    ): Boolean {
         val daoClass = getDaoClass(entityClass)
         val method = getAnnotatedMethod(daoClass.methods, UpdateMethod::class.java)
         // инвокаем его на переданных параметрах
         return method?.invoke(daoClass.newInstance(), id, columnsToValues) as Boolean
     }
 
-    override fun <T : CRUDable, E> updateAndGet(entityClass: Class<T>, id: Int, columnsToValues: Map<String, @WrappedClass E>): T? {
-        TODO("Not yet implemented")
-    }
+    override fun <T : CRUDable, E> updateEntityAndGet(
+        entityClass: Class<T>,
+        id: Int,
+        columnsToValues: Map<String, @WrappedClass E>
+    ) =
+        if (updateEntity(entityClass, id, columnsToValues))
+            getEntityById(entityClass, id)
+        else null
 
     override fun <T : CRUDable> delete(entity: T?) {
         TODO("Not yet implemented")
@@ -75,5 +89,6 @@ object Manager : CRUD {
         return Class.forName(daoClassName)
     }
 
-    private fun getAnnotatedMethod(methods: Array<Method>, annotationClass: Class<out Annotation>) = methods.find { method -> method.isAnnotationPresent(annotationClass) }
+    private fun getAnnotatedMethod(methods: Array<Method>, annotationClass: Class<out Annotation>) =
+        methods.find { method -> method.isAnnotationPresent(annotationClass) }
 }

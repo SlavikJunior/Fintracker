@@ -23,8 +23,13 @@ fun main() {
 //        )
 //    println("Получили из бд по where: $personByID")
 //    println("Все три сущности равны?: ${person == personByID && person == personByWhere && personByID == personByWhere}")
-    val isUpdated = Manager.update(Person::class.java, 1012, mapOf(
-        "email" to "test@fincher.com",
+//    val isUpdated = Manager.update(Person::class.java, 1012, mapOf(
+//        "email" to "test@fincher.com",
+//    ))
+//    println("1012 обновлён?: $isUpdated")
+
+    val updatedPerson = Manager.updateEntityAndGet(Person::class.java, 1002, mapOf(
+        "firstName" to "Sam", "lastname" to "Altman", "email" to "open@ai.com", "ipaddress" to "127.0.0.1", "country" to "usa"
     ))
-    println("1012 обновлён?: $isUpdated")
+    println(updatedPerson)
 }

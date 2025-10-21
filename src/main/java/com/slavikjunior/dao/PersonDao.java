@@ -56,7 +56,7 @@ public class PersonDao {
         return person;
     }
 
-    @ReadMethodByColumnsAndValues
+    @ReadMethodByValues
     public <E> @Nullable Person readUserByColumnsAndValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
