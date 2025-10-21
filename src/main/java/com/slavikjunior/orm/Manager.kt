@@ -20,32 +20,16 @@ object Manager : CRUD {
 
     }
 
-    override fun <T : CRUDable> create(entity: T, idIsAutoGenerate: Boolean): Boolean? {
-        // если id генерится автоматически то мы раскатываем объект
-        // в лист пропертей, но без id, иначе -> с ним
-        val properties = if (idIsAutoGenerate)
-            entity.toAnnotatedFieldsValuesListWithoutAnnotation(Id::class)
-//      пока не предусмотрена возможность занесения сущности в таблицу с id,
-//      но надо написать соответсвующий метод в дао и всё
-//        else entity.toFieldValuesList()
-        else return false
-
+    override fun <T : CRUDable> create(entity: T, idIsAutoGenerate: Boolean): Boolean {
         // получаем дао класс сущности
         val daoClass = getDaoClass(entity::class.java)
         // ищем create метод
         val method = getAnnotatedMethod(daoClass.methods, CreateMethod::class.java)
         // инвокаем его на параметрах
-        return properties.let { method?.invoke(daoClass.newInstance(), *it.toTypedArray()) } as Boolean?
+        return method?.invoke(daoClass.newInstance(), entity.toFieldMapByColumnNames()) as Boolean ?: false
     }
 
-    override fun <T : CRUDable> getById(entityClass: Class<T>, id: Int): T? {
-        // получаем дао класс сущности
-        val daoClass = getDaoClass(entityClass)
-        // ищем read метод
-        val method = getAnnotatedMethod(daoClass.methods, ReadMethod::class.java)
-        // инвокаем его на переданных параметрах
-        return method?.invoke(daoClass.newInstance(), id) as T?
-    }
+    override fun <T : CRUDable> getById(entityClass: Class<T>, id: Int) = getByValues(entityClass, mapOf("id" to id))
 
     override fun <T : CRUDable, E> getByValues(
         entityClass: Class<T>,
@@ -54,7 +38,7 @@ object Manager : CRUD {
         // получаем дао класс сущности
         val daoClass = Class.forName("$DAO_CLASSES_PATH${entityClass.simpleName}Dao")
         // ищем create метод
-        val method = getAnnotatedMethod(daoClass.methods, ReadMethodByValues::class.java)
+        val method = getAnnotatedMethod(daoClass.methods, ReadMethod::class.java)
         // инвокаем его на переданных параметрах
         return method?.invoke(daoClass.newInstance(), columnsToValues) as T?
     }

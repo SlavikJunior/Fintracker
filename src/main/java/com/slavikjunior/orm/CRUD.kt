@@ -4,7 +4,7 @@ import com.slavikjunior.annotations.WrappedClass
 
 interface CRUD {
 
-    fun <T : CRUDable> create(entity: T, idIsAutoGenerate: Boolean = true): Boolean?
+    fun <T : CRUDable> create(entity: T, idIsAutoGenerate: Boolean = true): Boolean
     fun <T : CRUDable> getById(entityClass: Class<T>, id: Int): T?
     fun <T : CRUDable, E> getByValues(entityClass: Class<T>, columnsToValues: Map<String, @WrappedClass E>): T?
     fun <T : CRUDable, E> update(entityClass: Class<T>, id: Int, columnsToValues: Map<String, @WrappedClass E>): Boolean

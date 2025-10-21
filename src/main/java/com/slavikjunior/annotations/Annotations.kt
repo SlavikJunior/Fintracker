@@ -41,9 +41,5 @@ annotation class UpdateMethod
 annotation class DeleteMethod
 
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FUNCTION)
-annotation class ReadMethodByValues
-
-@Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS, AnnotationTarget.TYPE)
 annotation class WrappedClass()

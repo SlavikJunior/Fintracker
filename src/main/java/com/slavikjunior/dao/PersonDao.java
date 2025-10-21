@@ -4,12 +4,10 @@ import com.slavikjunior.annotations.*;
 import com.slavikjunior.models.Person;
 import com.slavikjunior.secrets.Keys;
 import org.jetbrains.annotations.Nullable;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-
 import static com.slavikjunior.db_manager.DbConnectionManagerKt.getConnection;
 
 @Database(name = Keys.databaseName)
@@ -19,44 +17,44 @@ public class PersonDao {
     private Connection connection = getConnection(Keys.databaseName, Keys.user, Keys.password);
 
     @CreateMethod
-    public boolean createPersonEntity(String firstName, String lastName, String email, String gender, String ipAddress, String country) throws SQLException {
+    public <E> boolean createPersonEntity(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
 
-        var ps = connection.prepareStatement(
-                """
-                        INSERT INTO  %s (
-                            firstname, lastname, email, gender, ipaddress, country
-                            ) VALUES (?, ?, ?, ?, ?, ?)
-                        """.formatted(Keys.tableName)
-        );
-        ps.setString(1, firstName);
-        ps.setString(2, lastName);
-        ps.setString(3, email);
-        ps.setString(4, gender);
-        ps.setString(5, ipAddress);
-        ps.setString(6, country);
-        return ps.execute();
+        var values = columnsToValues.values().stream().toArray();
+        var columns = columnsToValues.keySet().toArray();
+
+        int i = 0;
+        StringBuilder sb = new StringBuilder("insert into " + Keys.tableName + " (");
+        for (var column : columns) {
+            sb.append(column);
+            if (i < columnsToValues.size() - 1)
+                sb.append(", ");
+            i++;
+        }
+        sb.append(") values (");
+        i = 0;
+        for (var value : values) {
+            // todo сейчас поддержка String и Integer, возможно добавить др типы в будующем
+            var valueClass = value.getClass();
+            if (valueClass.equals(String.class)) {
+                sb.append("'%s'");
+                if (i < columnsToValues.size() - 1)
+                    sb.append(", ");
+            }
+
+            else if (valueClass.equals(Integer.class)) {
+                sb.append("%d");
+                if (i < columnsToValues.size() - 1)
+                    sb.append(", ");
+            }
+            i++;
+        }
+        sb.append(");");
+        return connection.prepareStatement(sb.toString().formatted(values)).executeUpdate() > 0;
     }
 
-    // todo возможно заменить id на long
     @ReadMethod
-    public @Nullable Person readPersonEntityById(int id) throws SQLException {
-        if (!isConnectionEstablished())
-            throw new SQLException();
-
-        var ps =
-                connection.prepareStatement("select * from persons where id = ?;");
-        ps.setInt(1, id);
-
-        ResultSet rs = ps.executeQuery();
-        Person person = createPerson(rs);
-        rs.close();
-        ps.close();
-        return person;
-    }
-
-    @ReadMethodByValues
     public <E> @Nullable Person readPersonEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
         if (!isConnectionEstablished())
             throw new SQLException();
