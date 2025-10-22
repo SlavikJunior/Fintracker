@@ -20,10 +20,11 @@ fun Any.toFieldMapByColumnNames(): Map<String, Any?> {
 //}
 
 fun Class<*>.isNullableColumn(columnName: String): Boolean {
-    val fields = this::class.java.declaredFields
-    val annotatedField = fields.find { it.name == columnName }
-    val annotation = annotatedField?.declaredAnnotations?.find { annotation -> annotation::class.java == Column::class.java }
-    return (annotation as Column).nullable
+    val fields = this.declaredFields.toList()
+    fields.forEach {it.isAccessible = true}
+    val annotatedFields = fields.filter { field -> field.declaredAnnotations.any { it is Column } }
+    val columns = annotatedFields.map { field -> field.getAnnotation(Column::class.java) }
+    return columns.find { it.name == columnName }?.nullable ?: false
 }
 
 fun KClass<*>.isNullableColumn(columnName: String): Boolean {

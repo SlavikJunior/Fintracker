@@ -52,8 +52,9 @@ class DbConnectionManager(
         }
     }
 
+    // todo сделать приватным
     @Throws(DbAccessException::class)
-    private fun getConnection(host: String = "localhost", port: String = "5432"): Connection {
+    fun getConnection(host: String = "localhost", port: String = "5432"): Connection {
         try {
             Class.forName("org.postgresql.Driver")
         } catch (e: ClassNotFoundException) {

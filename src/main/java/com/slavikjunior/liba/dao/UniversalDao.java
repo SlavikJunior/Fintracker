@@ -11,10 +11,9 @@ import com.slavikjunior.models.Person;
 import com.slavikjunior.secrets.Keys;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class UniversalDao<T> implements InterfaceDao<T> {
@@ -27,49 +26,64 @@ public class UniversalDao<T> implements InterfaceDao<T> {
     }
 
     @CreateMethod
-    public <E> boolean createEntity(Map<String, @WrappedClass E> columnsToValues) throws NotNullableColumnException, DbAccessException {
+    public <E> boolean createEntity(Map<String, @WrappedClass E> columnsToValues) throws DbAccessException, NotNullableColumnException {
 
-        var values = columnsToValues.values().stream().toArray();
-        var columns = columnsToValues.keySet().toArray();
+        List<String> columnsList = new ArrayList<>();
+        List<Object> valuesList = new ArrayList<>();
+
+        for (var entry : columnsToValues.entrySet()) {
+            String column = entry.getKey();
+            Object value = entry.getValue();
+
+            // ⚠️ Не вставляем автоинкрементное поле id
+            if (column.equalsIgnoreCase("id") && value == null) continue;
+
+            columnsList.add(column);
+            valuesList.add(value);
+        }
+
+        var columns = columnsList.toArray();
+        var values = valuesList.toArray();
 
         int i = 0;
         StringBuilder sb = new StringBuilder("insert into " + Keys.tableName + " (");
         for (var column : columns) {
             sb.append(column);
-            if (i < columnsToValues.size() - 1)
+            if (i < columnsList.size() - 1)
                 sb.append(", ");
             i++;
         }
         sb.append(") values (");
-        i = 0;
-        // todo сейчас поддержка null, String и Integer, возможно добавить др типы в будующем
-        for (var value : values) {
-            if (value == null) {
-                boolean isNullableColumn = KotlinExtensionsFunctions.isNullableColumn(typeParameterClass, String.valueOf(columns[i]));
-                if (isNullableColumn) {
-                    sb.append("%s");
-                    if (i < columnsToValues.size() - 1)
-                        sb.append(", ");
-                } else
-                    throw new NotNullableColumnException("Column " + columns[i] + " is not nullable");
-            } else {
-                var valueClass = value.getClass();
-                if (valueClass.equals(String.class)) {
-                    sb.append("'%s'");
-                    if (i < columnsToValues.size() - 1)
-                        sb.append(", ");
-                } else if (valueClass.equals(Integer.class)) {
-                    sb.append("%d");
-                    if (i < columnsToValues.size() - 1)
-                        sb.append(", ");
-                }
-            }
-            i++;
+
+        int j = 0;
+        for (; j < values.length - 1; j++) {
+            sb.append("?").append(", ");
         }
-        sb.append(");");
+        sb.append("?").append(");");
+
         try {
-            return connection.prepareStatement(sb.toString().formatted(values)).executeUpdate() > 0;
+            int index = 0;
+            var ps = connection.prepareStatement(sb.toString());
+            for (var value : values) {
+                if (value == null) {
+                    boolean isNullableColumn = KotlinExtensionsFunctions.isNullableColumn(
+                            typeParameterClass, String.valueOf(columns[index])
+                    );
+                    if (isNullableColumn)
+                        ps.setNull(index + 1, Types.NULL);
+                    else
+                        throw new NotNullableColumnException("Column " + columns[index] + " is not nullable");
+                } else if (value instanceof String s)
+                    ps.setString(index + 1, s);
+                else if (value instanceof Integer integer)
+                    ps.setInt(index + 1, integer);
+                else
+                    ps.setObject(index + 1, value);
+                index++;
+            }
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
+            e.printStackTrace();
             throw new DbAccessException("Database access error occurs");
         }
     }
