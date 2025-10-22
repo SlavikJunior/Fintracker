@@ -1,11 +1,18 @@
-package com.slavikjunior.orm
+package com.slavikjunior.liba.orm
 
-import com.slavikjunior.annotations.*
-import com.slavikjunior.util.toFieldMapByColumnNames
+import com.slavikjunior.liba.annotations.CreateMethod
+import com.slavikjunior.liba.annotations.DeleteMethod
+import com.slavikjunior.liba.annotations.ReadMethod
+import com.slavikjunior.liba.annotations.UpdateMethod
+import com.slavikjunior.liba.annotations.WrappedClass
+import com.slavikjunior.liba.dao.UniversalDao
+import com.slavikjunior.liba.db_manager.DbConnectionManager
+import com.slavikjunior.liba.utils.toFieldMapByColumnNames
 import java.lang.reflect.Method
 
 class CRUDer(
-    private val daoClassesPath: String = "com.slavikjunior.dao."
+    private val daoClassesPath: String = "com.slavikjunior.liba.dao.",
+    private val dbConnectionManager: DbConnectionManager
 ): CRUD {
 
     override fun <T : CRUDable> create(entity: T, idIsAutoGenerate: Boolean): Boolean {
@@ -14,7 +21,7 @@ class CRUDer(
         // ищем create метод
         val method = getAnnotatedMethod(daoClass.methods, CreateMethod::class.java)
         // инвокаем его на параметрах
-        return method?.invoke(daoClass.newInstance(), entity.toFieldMapByColumnNames()) as Boolean
+        return method?.invoke(UniversalDao(entity::class.java), entity.toFieldMapByColumnNames()) as Boolean
     }
 
     override fun <T : CRUDable> getById(entityClass: Class<T>, id: Int) = getByValues(entityClass, mapOf("id" to id))
@@ -62,14 +69,15 @@ class CRUDer(
 
     override fun <T : CRUDable> deleteById(entityClass: Class<T>, id: Int) = deleteByValues(entityClass, mapOf("id" to id))
 
-    private fun <T> getDaoClass(entityClass: Class<T>): Class<*> {
-        // получаем полное имя дао класса для сущности
-        val daoClassName = "$daoClassesPath${entityClass.simpleName}Dao"
-        // получаем дао класс сущности
-        return Class.forName(daoClassName)
-    }
-
     override fun <T : CRUDable> deleteByEntity(entity: T) = deleteByValues(entity::class.java, entity.toFieldMapByColumnNames())
+
+    private fun <T> getDaoClass(entityClass: Class<T>): Class<*> {
+//        // получаем полное имя дао класса для сущности
+//        val daoClassName = "$daoClassesPath${entityClass.simpleName}Dao"
+//        // получаем дао класс сущности
+//        return Class.forName(daoClassName)
+        return UniversalDao::class.java
+    }
 
     private fun getAnnotatedMethod(methods: Array<Method>, annotationClass: Class<out Annotation>) =
         methods.find { method -> method.isAnnotationPresent(annotationClass) }

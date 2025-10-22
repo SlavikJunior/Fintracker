@@ -1,8 +1,7 @@
-package com.slavikjunior.orm;
+package com.slavikjunior.liba.orm;
 
-import com.slavikjunior.annotations.*;
+import com.slavikjunior.liba.annotations.*;
 import org.jetbrains.annotations.Nullable;
-
 import java.sql.SQLException;
 import java.util.Map;
 

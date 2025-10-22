@@ -1,24 +1,33 @@
-package com.slavikjunior.dao;
+package com.slavikjunior.liba.dao;
 
-import com.slavikjunior.annotations.*;
+import com.slavikjunior.liba.annotations.*;
+import com.slavikjunior.liba.db_manager.DbConnectionManager;
+import com.slavikjunior.liba.exceptions.DbAccessException;
+import com.slavikjunior.liba.exceptions.DbConnectionException;
+import com.slavikjunior.liba.exceptions.NotNullableColumnException;
+import com.slavikjunior.liba.orm.InterfaceDao;
+import com.slavikjunior.liba.utils.KotlinExtensionsFunctions;
 import com.slavikjunior.models.Person;
-import com.slavikjunior.orm.InterfaceDao;
 import com.slavikjunior.secrets.Keys;
 import org.jetbrains.annotations.Nullable;
+
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-import static com.slavikjunior.db_manager.DbConnectionManagerKt.getConnection;
 
-public class PersonDao implements InterfaceDao<Person> {
+public class UniversalDao<T> implements InterfaceDao<T> {
 
-    private Connection connection = getConnection(Keys.databaseName, Keys.user, Keys.password);
+    private Connection connection = new DbConnectionManager("testdb", "postgres", "7913").useConnectionOnLocalHostAndStandardPort();
+    private final Class<T> typeParameterClass;
+
+    public UniversalDao(Class<T> typeParameterClass) throws DbConnectionException {
+        this.typeParameterClass = typeParameterClass;
+    }
 
     @CreateMethod
-    public <E> boolean createEntity(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
-        if (!isConnectionEstablished())
-            throw new SQLException();
+    public <E> boolean createEntity(Map<String, @WrappedClass E> columnsToValues) throws NotNullableColumnException, DbAccessException {
 
         var values = columnsToValues.values().stream().toArray();
         var columns = columnsToValues.keySet().toArray();
@@ -33,31 +42,40 @@ public class PersonDao implements InterfaceDao<Person> {
         }
         sb.append(") values (");
         i = 0;
+        // todo сейчас поддержка null, String и Integer, возможно добавить др типы в будующем
         for (var value : values) {
-            // todo сейчас поддержка String и Integer, возможно добавить др типы в будующем
-            var valueClass = value.getClass();
-            if (valueClass.equals(String.class)) {
-                sb.append("'%s'");
-                if (i < columnsToValues.size() - 1)
-                    sb.append(", ");
-            }
-
-            else if (valueClass.equals(Integer.class)) {
-                sb.append("%d");
-                if (i < columnsToValues.size() - 1)
-                    sb.append(", ");
+            if (value == null) {
+                boolean isNullableColumn = KotlinExtensionsFunctions.isNullableColumn(typeParameterClass, String.valueOf(columns[i]));
+                if (isNullableColumn) {
+                    sb.append("%s");
+                    if (i < columnsToValues.size() - 1)
+                        sb.append(", ");
+                } else
+                    throw new NotNullableColumnException("Column " + columns[i] + " is not nullable");
+            } else {
+                var valueClass = value.getClass();
+                if (valueClass.equals(String.class)) {
+                    sb.append("'%s'");
+                    if (i < columnsToValues.size() - 1)
+                        sb.append(", ");
+                } else if (valueClass.equals(Integer.class)) {
+                    sb.append("%d");
+                    if (i < columnsToValues.size() - 1)
+                        sb.append(", ");
+                }
             }
             i++;
         }
         sb.append(");");
-        return connection.prepareStatement(sb.toString().formatted(values)).executeUpdate() > 0;
+        try {
+            return connection.prepareStatement(sb.toString().formatted(values)).executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new DbAccessException("Database access error occurs");
+        }
     }
 
     @ReadMethod
-    public <E> @Nullable Person readEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
-        if (!isConnectionEstablished())
-            throw new SQLException();
-
+    public <E> @Nullable T readEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
         int i = 0;
         StringBuilder sb = new StringBuilder("select * from " + Keys.tableName + " where ");
         for (var entry : columnsToValues.entrySet()) {
@@ -70,9 +88,7 @@ public class PersonDao implements InterfaceDao<Person> {
                 sb.append(columnName).append(" = '%s'");
                 if (i < columnsToValues.size() - 1)
                     sb.append(" and ");
-            }
-
-            else if (valueClass.equals(Integer.class)) {
+            } else if (valueClass.equals(Integer.class)) {
                 sb.append(columnName).append(" = %d");
                 if (i < columnsToValues.size() - 1)
                     sb.append(" and ");
@@ -91,15 +107,12 @@ public class PersonDao implements InterfaceDao<Person> {
 
         rs.close();
         ps.close();
-        return person;
+        return (T) person;
     }
 
     // todo возможно заменить id на long
     @UpdateMethod
     public <E> boolean updateEntityByValues(int id, Map<String, @WrappedClass E> columnsToValues) throws SQLException {
-        if (!isConnectionEstablished())
-            throw new SQLException();
-
         int i = 0;
         StringBuilder sb = new StringBuilder("update " + Keys.tableName + "\nset ");
         for (var entry : columnsToValues.entrySet()) {
@@ -112,9 +125,7 @@ public class PersonDao implements InterfaceDao<Person> {
                 sb.append(columnName).append(" = '%s'");
                 if (i < columnsToValues.size() - 1)
                     sb.append(",\n");
-            }
-
-            else if (valueClass.equals(Integer.class)) {
+            } else if (valueClass.equals(Integer.class)) {
                 sb.append(columnName).append(" = %d");
                 if (i < columnsToValues.size() - 1)
                     sb.append(",\n");
@@ -132,10 +143,7 @@ public class PersonDao implements InterfaceDao<Person> {
     }
 
     @DeleteMethod
-    public <E> boolean deleteEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
-        if (!isConnectionEstablished())
-            throw new SQLException();
-
+    public <E> boolean deleteEntityByValues(Map<String, @WrappedClass E> columnsToValues) throws DbAccessException {
         int i = 0;
         StringBuilder sb = new StringBuilder("delete from " + Keys.tableName + "\nwhere ");
         for (var entry : columnsToValues.entrySet()) {
@@ -148,9 +156,7 @@ public class PersonDao implements InterfaceDao<Person> {
                 sb.append(columnName).append(" = '%s'");
                 if (i < columnsToValues.size() - 1)
                     sb.append(" and ");
-            }
-
-            else if (valueClass.equals(Integer.class)) {
+            } else if (valueClass.equals(Integer.class)) {
                 sb.append(columnName).append(" = %d");
                 if (i < columnsToValues.size() - 1)
                     sb.append(" and ");
@@ -159,21 +165,24 @@ public class PersonDao implements InterfaceDao<Person> {
         }
         sb.append(';');
 
-        var values = columnsToValues.values().stream().toArray();
-        var ps = connection.prepareStatement(
-                sb.toString().formatted(values)
-        );
+        PreparedStatement ps = null;
+        try {
+            var values = columnsToValues.values().stream().toArray();
+            ps = connection.prepareStatement(
+                    sb.toString().formatted(values)
+            );
+        } catch (SQLException e) {
+            throw new DbAccessException("database access error occurs");
+        }
 
-        int cntOfChangedRows = ps.executeUpdate();
-        ps.close();
+        int cntOfChangedRows = 0;
+        try {
+            cntOfChangedRows = ps.executeUpdate();
+            ps.close();
+        } catch (SQLException e) {
+            throw new DbAccessException("database access error occurs or driver has determined that the timeout value");
+        }
         return cntOfChangedRows > 0;
-    }
-
-    private boolean isConnectionEstablished() {
-        if (connection != null)
-            return true;
-        else
-            return false;
     }
 
     private @Nullable Person createInstanceByResultSet(ResultSet rs) throws SQLException {

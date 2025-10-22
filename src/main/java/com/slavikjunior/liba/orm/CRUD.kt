@@ -1,6 +1,6 @@
-package com.slavikjunior.orm
+package com.slavikjunior.liba.orm
 
-import com.slavikjunior.annotations.WrappedClass
+import com.slavikjunior.liba.annotations.WrappedClass
 
 interface CRUD {
 
