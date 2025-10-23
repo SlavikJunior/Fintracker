@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.SQLException;
 import java.util.Map;
 
-public interface InterfaceDao<T> {
+public interface DaoOperations<T> {
 
     @CreateMethod
     <E> boolean createEntity(Map<String, @WrappedClass E> columnsToValues) throws SQLException;

@@ -8,100 +8,97 @@ import java.sql.DriverManager
 import java.sql.SQLException
 
 class DbConnectionManager(
-    private val dataBaseName: String,
+    private val databaseName: String,
     private val user: String,
-    private val password: String
+    private val password: String,
 ) {
+    private val defaultHost = "localhost"
+    private val defaultPort = "5432"
 
-    private var connection: Connection = getConnectionOnLocalhostAndStandardPort()
-    private var host: String? = null
-    private var port: String? = null
+    // Храним текущее соединение
+    private var connection: Connection? = null
 
+    // Последние успешные параметры подключения
+    private var host: String = defaultHost
+    private var port: String = defaultPort
+
+    init {
+        loadDriver()
+    }
+
+    /**
+     * Возвращает активное соединение.
+     * Если оно закрыто или отсутствует — создаёт новое.
+     */
+    @JvmOverloads
     @Throws(DbConnectionException::class)
-    fun useConnection(host: String = "localhost", port: String = "5432"): Connection {
+    fun useConnection(host: String = this.host, port: String = this.port): Connection {
         try {
             if (!connectionIsAlive()) {
-                if (this.host == null && this.port == null)
-                    return getConnection(host, port)
-                else
-                    return getConnectionOnLocalhostAndStandardPort()
+                this.connection = createConnection(host, port)
+                this.host = host
+                this.port = port
             }
-            return connection
+            return this.connection!!
         } catch (e: SQLException) {
-            throw DbConnectionException("Miss database connection or database access error occurs")
+            throw DbConnectionException("Failed to obtain a valid database connection: ${e.message}", e)
         }
     }
 
-    @Throws(DbConnectionException::class)
-    fun useConnectionOnLocalHostAndStandardPort(): Connection {
-        try {
-            if (!connectionIsAlive())
-                return getConnectionOnLocalhostAndStandardPort()
-            return connection
-        } catch (e: SQLException) {
-            throw DbConnectionException("Miss database connection or database access error occurs")
-        }
-    }
-
-    @Throws(DbAccessException::class, DriverNotFoundException::class)
-    fun closeConnection(connection: Connection) {
-        try {
-            connection.close()
-        } catch (e: SQLException) {
-            throw DbAccessException("Database access error occurs")
-        }
-    }
-
-    // todo сделать приватным
+    /**
+     * Принудительно закрывает соединение (если оно открыто).
+     */
     @Throws(DbAccessException::class)
-    fun getConnection(host: String = "localhost", port: String = "5432"): Connection {
+    fun closeConnection() {
         try {
-            Class.forName("org.postgresql.Driver")
-        } catch (e: ClassNotFoundException) {
-            throw DriverNotFoundException("Driver postgresql not found")
-        }
-        try {
-            connection = DriverManager.getConnection(
-                "jdbc:postgresql://$host:$port/$dataBaseName", user, password
-            )
-            setUpHostAndPort(host, port)
-            return connection
+            connection?.let {
+                if (!it.isClosed) {
+                    it.close()
+                    println("✅ Connection closed successfully")
+                }
+            }
+            connection = null
         } catch (e: SQLException) {
-            throw DbAccessException("Database access error occurs or the url is null")
+            throw DbAccessException("Failed to close database connection: ${e.message}", e)
         }
     }
 
-    @Throws(DbAccessException::class, DriverNotFoundException::class)
-    private fun getConnectionOnLocalhostAndStandardPort(): Connection {
-        try {
-            Class.forName("org.postgresql.Driver")
-        } catch (e: ClassNotFoundException) {
-            throw DriverNotFoundException("Driver postgresql not found")
-        }
-        try {
-            setUpHostAndPort("localhost", "5432")
-            connection = DriverManager.getConnection(
-                "jdbc:postgresql://$host:$port/$dataBaseName", user, password
-            )
-            return connection
-        } catch (e: SQLException) {
-            throw DbAccessException("Database access error occurs or the url is null")
-        }
-    }
-
-    private fun setUpHostAndPort(host: String, port: String) {
-        if (this.host == null && this.port == null) {
-            this.host = host
-            this.port = port
-        }
-    }
-
-    @Throws(DbAccessException::class)
+    /**
+     * Проверяет живое ли соединение.
+     * isValid(timeout) надёжнее, чем isClosed.
+     */
     private fun connectionIsAlive(): Boolean {
-        try {
-            return !connection.isClosed
+        return try {
+            connection != null && connection!!.isValid(2)
         } catch (e: SQLException) {
-            throw DbAccessException("Database access error occurs")
+            false
+        }
+    }
+
+    /**
+     * Создаёт новое соединение с заданными параметрами.
+     */
+    @Throws(DbAccessException::class)
+    private fun createConnection(host: String, port: String): Connection {
+        return try {
+            val url = "jdbc:postgresql://$host:$port/$databaseName"
+            val conn = DriverManager.getConnection(url, user, password)
+            println("✅ Connected to PostgreSQL database at $host:$port/$databaseName")
+            conn
+        } catch (e: SQLException) {
+            throw DbAccessException("Failed to connect to database at $host:$port/$databaseName: ${e.message}", e)
+        }
+    }
+
+    /**
+     * Загружает драйвер PostgreSQL.
+     */
+    @Throws(DriverNotFoundException::class)
+    private fun loadDriver() {
+        try {
+            Class.forName("org.postgresql.Driver")
+        } catch (e: ClassNotFoundException) {
+            throw DriverNotFoundException("PostgreSQL JDBC driver not found. Add 'org.postgresql:postgresql' to dependencies.")
         }
     }
 }

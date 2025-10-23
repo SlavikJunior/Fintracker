@@ -4,88 +4,64 @@ import com.slavikjunior.liba.annotations.*;
 import com.slavikjunior.liba.db_manager.DbConnectionManager;
 import com.slavikjunior.liba.exceptions.DbAccessException;
 import com.slavikjunior.liba.exceptions.DbConnectionException;
-import com.slavikjunior.liba.exceptions.NotNullableColumnException;
-import com.slavikjunior.liba.orm.InterfaceDao;
-import com.slavikjunior.liba.utils.KotlinExtensionsFunctions;
+import com.slavikjunior.liba.orm.DaoOperations;
 import com.slavikjunior.models.Person;
 import com.slavikjunior.secrets.Keys;
 import org.jetbrains.annotations.Nullable;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Map;
 
-public class UniversalDao<T> implements InterfaceDao<T> {
+public class PersonDaoOperations<T> implements DaoOperations<T> {
 
-    private Connection connection = new DbConnectionManager("testdb", "postgres", "7913").useConnectionOnLocalHostAndStandardPort();
-    private final Class<T> typeParameterClass;
+    private Connection connection = new DbConnectionManager("testdb", "postgres", "7913").useConnection();
 
-    public UniversalDao(Class<T> typeParameterClass) throws DbConnectionException {
-        this.typeParameterClass = typeParameterClass;
+    public PersonDaoOperations() throws DbConnectionException {
     }
 
     @CreateMethod
-    public <E> boolean createEntity(Map<String, @WrappedClass E> columnsToValues) throws DbAccessException, NotNullableColumnException {
+    public <E> boolean createEntity(Map<String, @WrappedClass E> columnsToValues) throws SQLException {
 
-        List<String> columnsList = new ArrayList<>();
-        List<Object> valuesList = new ArrayList<>();
-
-        for (var entry : columnsToValues.entrySet()) {
-            String column = entry.getKey();
-            Object value = entry.getValue();
-
-            // ⚠️ Не вставляем автоинкрементное поле id
-            if (column.equalsIgnoreCase("id") && value == null) continue;
-
-            columnsList.add(column);
-            valuesList.add(value);
-        }
-
-        var columns = columnsList.toArray();
-        var values = valuesList.toArray();
+        var values = columnsToValues.values().stream().toArray();
+        var columns = columnsToValues.keySet().toArray();
 
         int i = 0;
         StringBuilder sb = new StringBuilder("insert into " + Keys.tableName + " (");
         for (var column : columns) {
             sb.append(column);
-            if (i < columnsList.size() - 1)
+            if (i < columnsToValues.size() - 1)
                 sb.append(", ");
             i++;
         }
         sb.append(") values (");
-
-        int j = 0;
-        for (; j < values.length - 1; j++) {
-            sb.append("?").append(", ");
-        }
-        sb.append("?").append(");");
-
-        try {
-            int index = 0;
-            var ps = connection.prepareStatement(sb.toString());
-            for (var value : values) {
-                if (value == null) {
-                    boolean isNullableColumn = KotlinExtensionsFunctions.isNullableColumn(
-                            typeParameterClass, String.valueOf(columns[index])
-                    );
-                    if (isNullableColumn)
-                        ps.setNull(index + 1, Types.NULL);
-                    else
-                        throw new NotNullableColumnException("Column " + columns[index] + " is not nullable");
-                } else if (value instanceof String s)
-                    ps.setString(index + 1, s);
-                else if (value instanceof Integer integer)
-                    ps.setInt(index + 1, integer);
-                else
-                    ps.setObject(index + 1, value);
-                index++;
+        i = 0;
+        // todo сейчас поддержка null, String и Integer, возможно добавить др типы в будующем
+        for (var value : values) {
+            if (value == null) {
+//                T.class.getDeclaredFields();
+                sb.append("null");
+                if (i < columnsToValues.size() - 1)
+                    sb.append(", ");
+                continue;
+            } else {
+                var valueClass = value.getClass();
+                if (valueClass.equals(String.class)) {
+                    sb.append("'%s'");
+                    if (i < columnsToValues.size() - 1)
+                        sb.append(", ");
+                } else if (valueClass.equals(Integer.class)) {
+                    sb.append("%d");
+                    if (i < columnsToValues.size() - 1)
+                        sb.append(", ");
+                }
             }
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new DbAccessException("Database access error occurs");
+            i++;
         }
+        sb.append(");");
+        return connection.prepareStatement(sb.toString().formatted(values)).executeUpdate() > 0;
     }
 
     @ReadMethod
@@ -182,7 +158,7 @@ public class UniversalDao<T> implements InterfaceDao<T> {
         PreparedStatement ps = null;
         try {
             var values = columnsToValues.values().stream().toArray();
-            ps = connection.prepareStatement(
+            ps  = connection.prepareStatement(
                     sb.toString().formatted(values)
             );
         } catch (SQLException e) {

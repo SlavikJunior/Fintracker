@@ -1,3 +1,3 @@
 package com.slavikjunior.liba.orm;
 
-public interface CRUDable {}
+public interface Entity {}
