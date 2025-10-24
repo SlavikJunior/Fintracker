@@ -1,8 +1,6 @@
 package com.slavikjunior.liba.orm
 
-import com.slavikjunior.liba.annotations.WrappedClass
-
-interface CrudOperations {
+interface Crud {
 
     fun <T : Entity> create(entity: T, idIsAutoGenerate: Boolean = true): Boolean
     fun <T : Entity> getById(entityClass: Class<T>, id: Int): T?
