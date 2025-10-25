@@ -15,7 +15,7 @@ import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Types
 
-class UniversalDao<T: Any>(
+class UniversalDao<T : Any>(
     private val typeParameterClass: Class<T>
 ) : Dao<T> {
     private val connection = DbConnectionManager(
@@ -95,13 +95,14 @@ class UniversalDao<T: Any>(
                 if (i < columnsToValues.size - 1) sb.append(" and ")
             } else {
                 val valueClass: Class<*> = value.javaClass
-                if (valueClass == String::class.java) {
+                if (valueClass == java.lang.String::class.java) {
                     sb.append(columnName).append(" = '%s'")
                     if (i < columnsToValues.size - 1) sb.append(" and ")
-                } else if (valueClass == Int::class.java) {
+                } else if (valueClass == Integer::class.java) {
                     sb.append(columnName).append(" = %d")
                     if (i < columnsToValues.size - 1) sb.append(" and ")
-                }
+                } else
+                    sb.append(columnName).append(" = %s")
             }
             i++
         }
@@ -157,29 +158,28 @@ class UniversalDao<T: Any>(
     @DeleteMethod
     @Throws(DbAccessException::class)
     override fun <E> deleteEntityByValues(columnsToValues: MutableMap<String, E?>): Boolean {
-        var i = 0
+        var columnCount = 0
         val sb = StringBuilder("delete from " + Keys.tableName + "\nwhere ")
         for (entry in columnsToValues.entries) {
             val columnName = entry.key
             val value = entry.value
 
-            // todo сейчас поддержка String и Integer, возможно добавить др типы в будующем
-            //  добавить обработку null
             if (value != null) {
                 val valueClass: Class<*> = value::class.java
-                if (valueClass == String::class.java) {
+                if (valueClass == String::class.java)
                     sb.append(columnName).append(" = '%s'")
-                    if (i < columnsToValues.size - 1) sb.append(" and ")
-                } else if (valueClass == Int::class.java) {
+                else if (valueClass == java.lang.Integer::class.java)
                     sb.append(columnName).append(" = %d")
-                    if (i < columnsToValues.size - 1) sb.append(" and ")
-                }
-            }
-            i++
+                else if (valueClass == java.lang.Object::class.java)
+                    sb.append(columnName).append(" = %s")
+            } else
+                sb.append(columnName).append(" = null")
+
+            if (columnCount++ < columnsToValues.size - 1) sb.append(" and ")
         }
         sb.append(';')
 
-        var ps: PreparedStatement? = null
+        val ps: PreparedStatement
         try {
             val values = columnsToValues.values.stream().toArray()
             ps = connection.prepareStatement(
@@ -201,13 +201,13 @@ class UniversalDao<T: Any>(
 
     fun createInstanceByResultSet(rs: ResultSet): Any? {
         val rsmd = rs.metaData
-        val columCount = rsmd.columnCount
+        val columnCount = rsmd.columnCount
 
         val initArgs = mutableListOf<Any?>()
         // todo добавить поддержку возврата множества объектов
         while (rs.next()) {
 //            val initArgs = mutableListOf<Any?>()
-            for (i in 1..columCount) {
+            for (i in 1..columnCount) {
                 val type = rsmd.getColumnClassName(i)
                 val label = rsmd.getColumnName(i)
 
@@ -221,8 +221,8 @@ class UniversalDao<T: Any>(
             }
 //            return typeParameterClass.constructors[0].newInstance(initArgs)
         }
-        return if (initArgs.size == columCount)
+        return if (initArgs.size == columnCount)
             typeParameterClass.constructors[0].newInstance(*initArgs.toTypedArray())
-        else return null
+        else null
     }
 }
