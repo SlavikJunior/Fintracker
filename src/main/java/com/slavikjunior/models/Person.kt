@@ -5,8 +5,8 @@ import com.slavikjunior.liba.orm.Entity
 import com.slavikjunior.liba.utils.SupportedTypes
 
 data class Person(
-    @Column(name = "id", type = SupportedTypes.Integer, nullable = true)
-    var id: Int? = null,
+    @Column(name = "id", type = SupportedTypes.Integer, nullable = false)
+    var id: Int,
     @Column(name = "firstname", type = SupportedTypes.String, nullable = true)
     var firstName: String? = null,
     @Column(name = "lastname", type = SupportedTypes.String, nullable = true)

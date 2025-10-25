@@ -1,11 +1,17 @@
 package com.slavikjunior.runtime
 
+import com.slavikjunior.liba.db_manager.DbConnectionManager
 import com.slavikjunior.liba.orm.EntityManager
 import com.slavikjunior.models.Person
 
 fun main() {
-    val azazin = EntityManager.update(Person::class.java, 1018, mapOf(
-        "firstName" to "Azazin", "lastName" to "Jaba", "ipaddress" to "localhost", "country" to "russia"
-    ), true)
-    println("Azazin: $azazin")
+    val azazin = EntityManager.get(
+        entityClass = Person::class.java,
+        columnsToValues = mapOf(
+            "id" to "1018", "gender" to null,
+            "ipaddress" to "localhost",
+            "firstname" to "Azazin"
+        )
+    )
+    println(azazin)
 }

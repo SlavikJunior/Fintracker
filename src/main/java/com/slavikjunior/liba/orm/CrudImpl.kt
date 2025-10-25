@@ -20,7 +20,7 @@ class CrudImpl(
         // ищем create метод
         val method = getAnnotatedMethod(daoClass.methods, CreateMethod::class.java)
         // инвокаем его на параметрах
-        return method?.invoke(UniversalDao(entity::class.java), entity.toFieldMapByColumnNames()) as Boolean
+        return method?.invoke(daoClass.constructors[0].newInstance(entity::class.java), entity.toFieldMapByColumnNames()) as Boolean
     }
 
     override fun <T : Entity> getById(entityClass: Class<T>, id: Int) = getByValues(entityClass, mapOf("id" to id))

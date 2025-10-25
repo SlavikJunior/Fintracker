@@ -5,8 +5,9 @@ import com.slavikjunior.liba.db_manager.DbConnectionManager
 object EntityManager {
 
     // todo убрать потом
-    private val crudOperations: CrudImpl =
-        CrudImpl(dbConnectionManager = DbConnectionManager("testdb", "postgres", "7913"))
+    private val crudOperations = CrudImpl(
+        dbConnectionManager = DbConnectionManager("testdb", "postgres", "7913")
+    )
 
     fun <T : Entity> create(entity: T, idIsAutoGenerate: Boolean = true) =
         crudOperations.create(entity, idIsAutoGenerate)
