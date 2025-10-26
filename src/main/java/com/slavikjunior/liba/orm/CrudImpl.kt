@@ -1,61 +1,35 @@
 package com.slavikjunior.liba.orm
 
-import com.slavikjunior.liba.annotations.CreateMethod
-import com.slavikjunior.liba.annotations.DeleteMethod
-import com.slavikjunior.liba.annotations.ReadMethod
-import com.slavikjunior.liba.annotations.UpdateMethod
 import com.slavikjunior.liba.dao.UniversalDao
 import com.slavikjunior.liba.utils.toFieldMapByColumnNames
-import java.lang.reflect.Method
 
-object CrudImpl : Crud {
+internal object CrudImpl : Crud {
 
-    override fun <T : Entity> create(entity: T, idIsAutoGenerate: Boolean): Boolean {
-        // получаем дао класс сущности
-        val daoClass = getDaoClass(entity::class.java)
-        // ищем create метод
-        val method = getAnnotatedMethod(daoClass.methods, CreateMethod::class.java)
-        // инвокаем его на параметрах
-        return method?.invoke(
-            daoClass.constructors[0].newInstance(entity::class.java),
-            entity.toFieldMapByColumnNames()
-        ) as Boolean
+    private var dao: Dao<*>? = null
+
+    override fun <T : Entity> create(entity: T): Boolean {
+        return getDaoInstance(entity::class.java).createEntity(entity.toFieldMapByColumnNames())
     }
 
     override fun <T : Entity> getById(entityClass: Class<T>, id: Int) = getByValues(entityClass, mapOf("id" to id))
 
     override fun <T : Entity> getByValues(
         entityClass: Class<T>,
-        columnsToValues: Map<String, Any?>?
-    ): T? {
-        // получаем дао класс сущности
-        val daoClass = getDaoClass(entityClass)
-        // ищем create метод
-        val method = getAnnotatedMethod(daoClass.methods, ReadMethod::class.java)
-        // инвокаем его на переданных параметрах
-        return method?.invoke(daoClass.constructors[0].newInstance(entityClass), columnsToValues) as T?
-    }
+        columnsToValues: Map<String, Any?>
+    ) = getDaoInstance(entityClass).readEntityByValues(columnsToValues) as List<T>?
 
-    override fun <T : Entity> update(entityClass: Class<T>, id: Int, columnsToValues: Map<String, Any?>?): Boolean {
-        val daoClass = getDaoClass(entityClass)
-        val method = getAnnotatedMethod(daoClass.methods, UpdateMethod::class.java)
-        // инвокаем его на переданных параметрах
-        return method?.invoke(daoClass.constructors[0].newInstance(entityClass), id, columnsToValues) as Boolean
-    }
 
-    override fun <T : Entity> updateAndGet(entityClass: Class<T>, id: Int, columnsToValues: Map<String, Any?>?) =
+    override fun <T : Entity> update(entityClass: Class<T>, id: Int, columnsToValues: Map<String, Any?>) =
+        getDaoInstance(entityClass).updateEntityByValues(id, columnsToValues)
+
+
+    override fun <T : Entity> updateAndGet(entityClass: Class<T>, id: Int, columnsToValues: Map<String, Any?>) =
         if (update(entityClass, id, columnsToValues))
-            getById(entityClass, id)
+            getById(entityClass, id) as List<T>
         else null
 
-    override fun <T : Entity> deleteByValues(entityClass: Class<T>, columnsToValues: Map<String, Any?>?): Boolean {
-        // todo удаление по полям, потом по id,
-        //  которое будет вызывать удаление по полям но чисто с id и возможно удаление по объекту
-        val daoClass = getDaoClass(entityClass)
-        val method = getAnnotatedMethod(daoClass.methods, DeleteMethod::class.java)
-        // инвокаем его на переданных параметрах
-        return method?.invoke(daoClass.constructors[0].newInstance(entityClass), columnsToValues) as Boolean
-    }
+    override fun <T : Entity> deleteByValues(entityClass: Class<T>, columnsToValues: Map<String, Any?>) =
+        getDaoInstance(entityClass).deleteEntityByValues(columnsToValues)
 
     override fun <T : Entity> deleteById(entityClass: Class<T>, id: Int) =
         deleteByValues(entityClass, mapOf("id" to id))
@@ -63,8 +37,9 @@ object CrudImpl : Crud {
     override fun <T : Entity> deleteByEntity(entity: T) =
         deleteByValues(entity::class.java, entity.toFieldMapByColumnNames())
 
-    private fun <T> getDaoClass(entityClass: Class<T>) = UniversalDao::class.java
-
-    private fun getAnnotatedMethod(methods: Array<Method>, annotationClass: Class<out Annotation>) =
-        methods.find { method -> method.isAnnotationPresent(annotationClass) }
+    private fun getDaoInstance(entityClass: Class<*>): Dao<*> {
+        if (dao == null)
+            dao = UniversalDao(entityClass)
+        return dao as Dao<*>
+    }
 }

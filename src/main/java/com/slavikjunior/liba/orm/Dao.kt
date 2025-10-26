@@ -9,17 +9,17 @@ import java.sql.SQLException
 interface Dao<T> {
     @CreateMethod
     @Throws(SQLException::class)
-    fun <E> createEntity(columnsToValues: MutableMap<String, E?>): Boolean
+    fun createEntity(columnsToValues: Map<String, Any?>): Boolean
 
     @ReadMethod
     @Throws(SQLException::class)
-    fun <E> readEntityByValues(columnsToValues: MutableMap<String, E?>): T?
+    fun readEntityByValues(columnsToValues: Map<String, Any?>): List<T>?
 
     @UpdateMethod
     @Throws(SQLException::class)
-    fun <E> updateEntityByValues(id: Int, columnsToValues: MutableMap<String, E?>): Boolean
+    fun updateEntityByValues(id: Int, columnsToValues: Map<String, Any?>): Boolean
 
     @DeleteMethod
     @Throws(SQLException::class)
-    fun <E> deleteEntityByValues(columnsToValues: MutableMap<String, E?>): Boolean
+    fun deleteEntityByValues(columnsToValues: Map<String, Any?>): Boolean
 }
