@@ -17,6 +17,12 @@ annotation class Id(
 )
 
 @Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.CLASS)
+annotation class Table(
+    val name: String
+)
+
+@Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
 annotation class CreateMethod
 

@@ -25,7 +25,7 @@ internal object CrudImpl : Crud {
 
     override fun <T : Entity> updateAndGet(entityClass: Class<T>, id: Int, columnsToValues: Map<String, Any?>) =
         if (update(entityClass, id, columnsToValues))
-            getById(entityClass, id) as List<T>
+            getById(entityClass, id) as T?
         else null
 
     override fun <T : Entity> deleteByValues(entityClass: Class<T>, columnsToValues: Map<String, Any?>) =
