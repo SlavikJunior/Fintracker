@@ -1,45 +1,30 @@
 package com.slavikjunior.servlets;
 
-import com.slavikjunior.exceptions.PageForwardException;
-import jakarta.servlet.ServletException;
+import com.slavikjunior.util.AppLogger;
+import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.*;
+
 import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.slavikjunior.util.UserIsLoggedChecker.isLoggedIn;
-
-@WebServlet(urlPatterns = {"/auth", "/auth/"})
+@WebServlet("/auth")
 public class AuthServlet extends HttpServlet {
-
-    private final static Logger LOGGER = Logger.getLogger(AuthServlet.class.getName());
+    private static final Logger log = AppLogger.get(AuthServlet.class);
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
-        resp.setContentType("text/html");
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
 
-        boolean isLoggedIn = isLoggedIn(req);
+        HttpSession session = request.getSession(false);
+        boolean isLoggedIn = session != null && session.getAttribute("userId") != null;
+
+        log.info("🔧 AuthServlet: isLoggedIn = " + isLoggedIn);
+
         if (isLoggedIn) {
-            try {
-                getServletContext().getRequestDispatcher("/html/main.html").forward(req, resp);
-                return;
-            } catch (ServletException e) {
-                var pfe = new PageForwardException(e.getMessage());
-                LOGGER.log(Level.SEVERE, pfe.getMessage());
-                throw pfe;
-            }
-        }
-
-        // иначе показываем страницу входа
-        try {
-            getServletContext().getRequestDispatcher("/html/auth.html").forward(req, resp);
-        } catch (ServletException e) {
-            var pfe = new PageForwardException(e.getMessage());
-            LOGGER.log(Level.SEVERE, pfe.getMessage());
-            throw pfe;
+            response.sendRedirect(request.getContextPath() + "/main");
+        } else {
+            request.getRequestDispatcher("/WEB-INF/auth.jsp").forward(request, response);
         }
     }
 }

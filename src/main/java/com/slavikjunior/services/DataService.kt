@@ -1,4 +1,4 @@
-//package com.slavikjunior.servises
+//package com.slavikjunior.services
 //
 //import com.fasterxml.jackson.core.type.TypeReference
 //import com.fasterxml.jackson.databind.ObjectMapper

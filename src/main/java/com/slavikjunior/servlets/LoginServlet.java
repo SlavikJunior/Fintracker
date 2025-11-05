@@ -1,18 +1,56 @@
 package com.slavikjunior.servlets;
 
-import jakarta.servlet.ServletException;
+import com.slavikjunior.models.User;
+import com.slavikjunior.services.AuthService;
+import com.slavikjunior.util.AppLogger;
+
+import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.util.logging.Logger;
 
-@WebServlet(urlPatterns = "/auth/login")
+@WebServlet("/auth/login")
 public class LoginServlet extends HttpServlet {
 
+    private static final Logger log = AppLogger.get(LoginServlet.class);
+    private AuthService authService = new AuthService();
+
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        getServletContext().getRequestDispatcher("/html/login.html").forward(req, resp);
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        if (req.getParameter("error") != null) {
+            req.setAttribute("errorMessage", "Неверный логин или пароль");
+        }
+        req.getRequestDispatcher("/WEB-INF/login.jsp").forward(req, resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException, ServletException {
+
+        String login = req.getParameter("login");
+        String password = req.getParameter("password");
+
+        log.info("🔧 LoginServlet: Auth attempt for " + login);
+
+        try {
+            User user = authService.authenticate(login, password);
+            if (user == null) {
+                log.warning("❌ Invalid credentials for: " + login);
+                resp.sendRedirect(req.getContextPath() + "/auth/login?error=true");
+                return;
+            }
+
+            log.info("✅ User authenticated successfully, ID: " + user.getId());
+            HttpSession session = req.getSession(true);
+            session.setAttribute("userId", user.getId());
+            session.setAttribute("user_login", user.getLogin());
+            resp.sendRedirect(req.getContextPath() + "/main");
+
+        } catch (Exception e) {
+            log.severe("💥 LoginServlet: Error during authentication - " + e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
     }
 }
