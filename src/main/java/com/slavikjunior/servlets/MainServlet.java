@@ -1,23 +1,46 @@
 package com.slavikjunior.servlets;
 
-import jakarta.servlet.ServletException;
+import com.slavikjunior.deorm.orm.EntityManager;
+import com.slavikjunior.models.Transaction;
+import com.slavikjunior.util.AppLogger;
+
+import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.*;
 import java.io.IOException;
+import java.util.*;
+import java.util.logging.Logger;
 
-import static com.slavikjunior.util.UserIsLoggedChecker.isLoggedIn;
-
-@WebServlet(urlPatterns = {"/main", "/main/"})
+@WebServlet("/main")
 public class MainServlet extends HttpServlet {
 
+    private static final Logger log = AppLogger.get(MainServlet.class);
+
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        boolean isLoggedIn = isLoggedIn(req);
-        if (isLoggedIn)
-            getServletContext().getRequestDispatcher("/html/main.html").forward(req, resp);
-        else
-            resp.sendRedirect(req.getContextPath() + "/auth/login");
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
+
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("userId") == null) {
+            log.warning("❌ MainServlet: No user session found");
+            response.sendRedirect(request.getContextPath() + "/auth");
+            return;
+        }
+
+        int userId = (int) session.getAttribute("userId");
+        log.info("✅ MainServlet: User ID = " + userId);
+
+        try {
+            List<Transaction> transactions = EntityManager.INSTANCE.get(Transaction.class, Map.of("user_id", userId));
+            int count = transactions == null ? 0 : transactions.size();
+            log.info("📊 Loaded " + count + " transactions");
+
+            request.setAttribute("transactions", transactions);
+            request.getRequestDispatcher("/WEB-INF/jsp/main.jsp").forward(request, response);
+
+        } catch (Exception e) {
+            log.severe("💥 MainServlet: Error loading transactions - " + e.getMessage());
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
     }
 }

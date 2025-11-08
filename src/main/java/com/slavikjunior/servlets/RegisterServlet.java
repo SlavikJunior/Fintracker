@@ -1,77 +1,85 @@
 package com.slavikjunior.servlets;
 
-import com.slavikjunior.exceptions.PageForwardException;
-import jakarta.servlet.ServletException;
+import com.slavikjunior.deorm.orm.EntityManager;
+import com.slavikjunior.models.User;
+import com.slavikjunior.services.AuthService;
+import com.slavikjunior.util.AppLogger;
+import com.slavikjunior.util.PasswordHashUtil;
+
+import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.*;
 
 import java.io.IOException;
-import java.util.logging.Level;
+import java.util.Map;
 import java.util.logging.Logger;
 
-import static com.slavikjunior.util.UserIsLoggedChecker.isLoggedIn;
-
-@WebServlet(urlPatterns = {"/auth/register", "/auth/register/"})
+@WebServlet("/auth/register")
 public class RegisterServlet extends HttpServlet {
 
-    private final static Logger LOGGER = Logger.getLogger(RegisterServlet.class.getName());
+    private static final Logger log = AppLogger.get(RegisterServlet.class);
+    private AuthService authService = new AuthService();
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // наверное здесь не надо проверять потому что пользователь может захотеть зарегистрировать новый аккаунт
-//        boolean isLoggedIn = isLoggedIn(req);
-        try {
-            getServletContext().getRequestDispatcher("/html/register.html").forward(req, resp);
-        } catch (ServletException e) {
-            var pfe = new PageForwardException(e.getMessage());
-            LOGGER.log(Level.SEVERE, pfe.getMessage());
-            throw pfe;
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        String err = req.getParameter("error");
+        if ("missing".equals(err)) {
+            req.setAttribute("errorMessage", "Заполните все поля");
+        } else if ("duplicate".equals(err)) {
+            req.setAttribute("errorMessage", "Логин или email уже занят");
+        } else if (err != null) {
+            req.setAttribute("errorMessage", "Ошибка регистрации");
         }
+        req.getRequestDispatcher("/WEB-INF/jsp/register.jsp").forward(req, resp);
     }
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
 
-        String login = req.getParameter("Login");
-        String password = req.getParameter("Password");
-        String email = req.getParameter("Email");
+        String login = req.getParameter("login");
+        String password = req.getParameter("password");
+        String email = req.getParameter("email");
 
-        boolean success = isValidCredentials(login, password, email);
+        log.info("🧾 RegisterServlet: Attempt to register user " + login + " (" + email + ")");
+
+        if (login == null || password == null || email == null ||
+                login.isBlank() || password.isBlank() || email.isBlank()) {
+            log.warning("⚠️ Missing registration parameters");
+            resp.sendRedirect(req.getContextPath() + "/auth/register?error=missing");
+            return;
+        }
 
         try {
-            if (success) {
-                resp.addCookie(new Cookie("auth", "true"));
-                resp.sendRedirect(req.getContextPath() + "/main");
-                return;
+            if (authService.isLoginExists(login)) {
+                throw new Exception("Login already exists");
             }
-            getServletContext().getRequestDispatcher("/html/invalid_register.html").forward(req, resp);
-        } catch (ServletException e) {
-            var pfe = new PageForwardException(e.getMessage());
-            LOGGER.log(Level.SEVERE, pfe.getMessage());
-            throw pfe;
+            if (authService.isEmailExists(email)) {
+                throw new Exception("Email already exists");
+            }
+
+            String hashedPassword = PasswordHashUtil.hashPassword(password);
+            User user = new User(0, login, hashedPassword, email);
+            EntityManager.INSTANCE.create(user);
+            var userList = EntityManager.INSTANCE.get(User.class,
+                    Map.of(
+                            "login", login, "password", hashedPassword
+                    )
+            );
+            if (userList != null)
+                user = userList.getLast();
+
+            log.info("✅ User created successfully: " + login);
+
+            HttpSession session = req.getSession(true);
+            session.setAttribute("user_id", user.getId());
+            session.setAttribute("user_login", user.getLogin());
+            resp.sendRedirect(req.getContextPath() + "/main");
+
+        } catch (Exception e) {
+            log.severe("💥 RegisterServlet: Error registering user - " + e.getMessage());
+            resp.sendRedirect(req.getContextPath() + "/auth/register?error=duplicate");
         }
-    }
-
-    private boolean isValidCredentials(String login, String password, String email) {
-        if (login == null || password == null || email == null) return false;
-
-        login = login.trim();
-        password = password.trim();
-        email = email.trim();
-
-        if (login.length() < 3 || login.length() > 30) return false;
-        if (password.length() < 6 || password.length() > 64) return false;
-
-        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
-        if (!email.matches(emailRegex)) return false;
-
-        String loginRegex = "^[a-zA-Z0-9_.-]+$";
-        if (!login.matches(loginRegex)) return false;
-
-        // добавление в бд
-        return true;
     }
 }

@@ -45,3 +45,4 @@ idea/*
 mvnw
 mvnw.cmd
 src/main/java/com/slavikjunior/secrets/*
+*.iml
