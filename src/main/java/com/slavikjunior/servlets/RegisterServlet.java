@@ -29,7 +29,7 @@ public class RegisterServlet extends HttpServlet {
         } else if (err != null) {
             req.setAttribute("errorMessage", "Ошибка регистрации");
         }
-        req.getRequestDispatcher("/WEB-INF/register.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/jsp/register.jsp").forward(req, resp);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class RegisterServlet extends HttpServlet {
             }
 
             String hashedPassword = PasswordHashUtil.hashPassword(password);
-            User user = new User(0, login, hashedPassword, email);
+            User user = new User(EntityManager.INSTANCE.getLastId(User.class), login, hashedPassword, email);
 
             EntityManager.INSTANCE.create(user);
             log.info("✅ User created successfully: " + login);

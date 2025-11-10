@@ -24,7 +24,7 @@ public class AuthServlet extends HttpServlet {
         if (isLoggedIn) {
             response.sendRedirect(request.getContextPath() + "/main");
         } else {
-            request.getRequestDispatcher("/WEB-INF/auth.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/jsp/auth.jsp").forward(request, response);
         }
     }
 }

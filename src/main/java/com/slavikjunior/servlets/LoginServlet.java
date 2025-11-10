@@ -22,7 +22,7 @@ public class LoginServlet extends HttpServlet {
         if (req.getParameter("error") != null) {
             req.setAttribute("errorMessage", "Неверный логин или пароль");
         }
-        req.getRequestDispatcher("/WEB-INF/login.jsp").forward(req, resp);
+        req.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(req, resp);
     }
 
     @Override

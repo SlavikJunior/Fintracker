@@ -16,7 +16,7 @@ public class DatabaseInitializer implements ServletContextListener {
         Properties properties = new Properties();
         try {
             // Загружаем properties из основного проекта
-            properties.load(getClass().getResourceAsStream("/Application.properties"));
+            properties.load(getClass().getResourceAsStream("/application.properties"));
         } catch (IOException e) {
             throw new RuntimeException("Failed to load application.properties from main project", e);
         }

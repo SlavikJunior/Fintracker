@@ -36,7 +36,7 @@ public class MainServlet extends HttpServlet {
             log.info("📊 Loaded " + count + " transactions");
 
             request.setAttribute("transactions", transactions);
-            request.getRequestDispatcher("/WEB-INF/main.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/jsp/main.jsp").forward(request, response);
 
         } catch (Exception e) {
             log.severe("💥 MainServlet: Error loading transactions - " + e.getMessage());
