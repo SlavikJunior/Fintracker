@@ -12,7 +12,8 @@ public class TransactionService {
     public boolean createTransaction(int userId, BigDecimal amount, String category, String description) {
         try {
             Transaction transaction = new Transaction(0, userId, amount, category, description);
-            return EntityManager.INSTANCE.create(transaction);
+            EntityManager.INSTANCE.create(transaction);
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;

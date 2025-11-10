@@ -13,10 +13,10 @@
     <h1>AI FinTracker</h1>
     <p>Ваш умный помощник по учету расходов. Отслеживайте финансы легко и эффективно!</p>
     <div class="auth-buttons">
-        <a href="${pageContext.request.contextPath}/auth/login" class="btn btn-primary">
+        <a href="${pageContext.request.contextPath}/login" class="btn btn-primary">
             <i class="fas fa-sign-in-alt"></i> Войти
         </a>
-        <a href="${pageContext.request.contextPath}/auth/register" class="btn btn-secondary">
+        <a href="${pageContext.request.contextPath}/register" class="btn btn-secondary">
             <i class="fas fa-user-plus"></i> Регистрация
         </a>
     </div>

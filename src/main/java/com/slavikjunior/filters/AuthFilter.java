@@ -1,5 +1,6 @@
 package com.slavikjunior.filters;
 
+import com.slavikjunior.util.SessionConstants;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +18,7 @@ public class AuthFilter implements Filter {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         HttpSession session = httpRequest.getSession(false);
-        if (session == null || session.getAttribute("userId") == null) {
+        if (session == null || session.getAttribute(SessionConstants.USER_ID) == null) {
             httpResponse.sendRedirect(httpRequest.getContextPath() + "/auth");
             return;
         }

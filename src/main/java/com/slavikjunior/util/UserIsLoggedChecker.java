@@ -11,7 +11,7 @@ public class UserIsLoggedChecker {
             System.out.println("🔍 No session found");
             return false;
         }
-        if (session.getAttribute("user_id") != null) {
+        if (session.getAttribute(SessionConstants.USER_ID) != null) {
             System.out.println("✅ User is logged in (session)");
             return true;
         }
@@ -22,7 +22,7 @@ public class UserIsLoggedChecker {
     public static int getUserId(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
         if (session != null) {
-            Object userIdObj = session.getAttribute("user_id");
+            Object userIdObj = session.getAttribute(SessionConstants.USER_ID);
             if (userIdObj instanceof Integer userId) {
                 return userId;
             }
@@ -34,7 +34,7 @@ public class UserIsLoggedChecker {
     public static String getUserLogin(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
         if (session != null) {
-            return (String) session.getAttribute("user_login");
+            return (String) session.getAttribute(SessionConstants.USER_LOGIN);
         }
         return null;
     }

@@ -14,7 +14,7 @@
     <% if (request.getAttribute("errorMessage") != null) { %>
     <div class="error-message"><i class="fas fa-exclamation-circle"></i> <%= request.getAttribute("errorMessage") %></div>
     <% } %>
-    <form action="${pageContext.request.contextPath}/auth/login" method="post">
+    <form action="${pageContext.request.contextPath}/login" method="post">
         <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
         <div class="form-group">
             <label for="login"><i class="fas fa-user"></i> Логин</label>

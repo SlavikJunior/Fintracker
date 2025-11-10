@@ -13,7 +13,7 @@
     <h2><i class="fas fa-exclamation-circle"></i> Ошибка регистрации</h2>
     <div class="error-message">Введите корректные данные!</div>
 
-    <form id="registerForm" action="${pageContext.request.contextPath}/auth/register" method="post">
+    <form id="registerForm" action="${pageContext.request.contextPath}/register" method="post">
         <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
 
         <div class="form-group">

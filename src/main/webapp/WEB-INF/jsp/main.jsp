@@ -2,6 +2,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="com.slavikjunior.models.Transaction" %>
 <%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="com.slavikjunior.util.SessionConstants" %>
 <%
     List<Transaction> transactions = (List<Transaction>) request.getAttribute("transactions");
     String error = request.getParameter("error");
@@ -22,7 +23,7 @@
     <h1><i class="fas fa-wallet"></i> AI FinTracker</h1>
     <p>Добро пожаловать! Ваш помощник по учету расходов</p>
     <div class="user-info">
-        <span><i class="fas fa-user-circle"></i> Пользователь: <%= session.getAttribute("user_login") %></span>
+        <span><i class="fas fa-user-circle"></i> Пользователь: <%= session.getAttribute(SessionConstants.USER_LOGIN) %></span>
         <a href="${pageContext.request.contextPath}/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a>
     </div>
 </header>

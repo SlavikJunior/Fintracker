@@ -22,7 +22,7 @@ public class CSRFFilter implements Filter {
 
         // Для публичных страниц (регистрация, логин) создаем сессию и токен
         String path = httpRequest.getServletPath();
-        boolean isPublicPath = path.startsWith("/auth") || path.equals("/");
+        boolean isPublicPath = path.equals("/") || path.equals("/login") || path.equals("/register");
 
         if (session == null && isPublicPath) {
             session = httpRequest.getSession(true);
@@ -36,7 +36,7 @@ public class CSRFFilter implements Filter {
         // Для POST запросов проверяем CSRF токен (кроме публичных endpoints)
         if ("POST".equalsIgnoreCase(httpRequest.getMethod())) {
             // Исключаем публичные endpoints из проверки CSRF
-            if (path.startsWith("/auth/register") || path.startsWith("/auth/login")) {
+            if (path.startsWith("/register") || path.startsWith("/login")) {
                 chain.doFilter(request, response);
                 return;
             }

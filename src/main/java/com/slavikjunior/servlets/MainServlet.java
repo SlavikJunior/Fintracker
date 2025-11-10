@@ -4,6 +4,7 @@ import com.slavikjunior.deorm.orm.EntityManager;
 import com.slavikjunior.models.Transaction;
 import com.slavikjunior.util.AppLogger;
 
+import com.slavikjunior.util.SessionConstants;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -19,19 +20,19 @@ public class MainServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
-
+        log.info("GET /main");
         HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("userId") == null) {
+        if (session == null || session.getAttribute(SessionConstants.USER_ID) == null) {
             log.warning("❌ MainServlet: No user session found");
             response.sendRedirect(request.getContextPath() + "/auth");
             return;
         }
 
-        int userId = (int) session.getAttribute("userId");
+        int userId = (int) session.getAttribute(SessionConstants.USER_ID);
         log.info("✅ MainServlet: User ID = " + userId);
 
         try {
-            List<Transaction> transactions = EntityManager.INSTANCE.get(Transaction.class, Map.of("user_id", userId));
+            List<Transaction> transactions = EntityManager.INSTANCE.get(Transaction.class, Map.of(SessionConstants.USER_ID, userId));
             int count = transactions == null ? 0 : transactions.size();
             log.info("📊 Loaded " + count + " transactions");
 

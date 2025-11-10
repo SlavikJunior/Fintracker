@@ -4,13 +4,14 @@ import com.slavikjunior.models.User;
 import com.slavikjunior.services.AuthService;
 import com.slavikjunior.util.AppLogger;
 
+import com.slavikjunior.util.SessionConstants;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-@WebServlet("/auth/login")
+@WebServlet("/login")
 public class LoginServlet extends HttpServlet {
 
     private static final Logger log = AppLogger.get(LoginServlet.class);
@@ -38,16 +39,16 @@ public class LoginServlet extends HttpServlet {
             User user = authService.authenticate(login, password);
             if (user == null) {
                 log.warning("❌ Invalid credentials for: " + login);
-                resp.sendRedirect(req.getContextPath() + "/auth/login?error=true");
+                resp.sendRedirect(req.getContextPath() + "/login?error=true");
                 return;
             }
 
             log.info("✅ User authenticated successfully, ID: " + user.getId());
             HttpSession session = req.getSession(true);
-            session.setAttribute("userId", user.getId());
-            session.setAttribute("user_login", user.getLogin());
+            session.setAttribute(SessionConstants.USER_ID, user.getId());
+            session.setAttribute(SessionConstants.USER_LOGIN, user.getLogin());
             resp.sendRedirect(req.getContextPath() + "/main");
-
+            log.info("redirect to " + req.getContextPath() + "/main");
         } catch (Exception e) {
             log.severe("💥 LoginServlet: Error during authentication - " + e.getMessage());
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

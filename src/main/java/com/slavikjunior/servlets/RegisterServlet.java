@@ -6,6 +6,7 @@ import com.slavikjunior.services.AuthService;
 import com.slavikjunior.util.AppLogger;
 import com.slavikjunior.util.PasswordHashUtil;
 
+import com.slavikjunior.util.SessionConstants;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -14,7 +15,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.logging.Logger;
 
-@WebServlet("/auth/register")
+@WebServlet("/register")
 public class RegisterServlet extends HttpServlet {
 
     private static final Logger log = AppLogger.get(RegisterServlet.class);
@@ -47,7 +48,7 @@ public class RegisterServlet extends HttpServlet {
         if (login == null || password == null || email == null ||
                 login.isBlank() || password.isBlank() || email.isBlank()) {
             log.warning("⚠️ Missing registration parameters");
-            resp.sendRedirect(req.getContextPath() + "/auth/register?error=missing");
+            resp.sendRedirect(req.getContextPath() + "/register?error=missing");
             return;
         }
 
@@ -61,25 +62,18 @@ public class RegisterServlet extends HttpServlet {
 
             String hashedPassword = PasswordHashUtil.hashPassword(password);
             User user = new User(0, login, hashedPassword, email);
-            EntityManager.INSTANCE.create(user);
-            var userList = EntityManager.INSTANCE.get(User.class,
-                    Map.of(
-                            "login", login, "password", hashedPassword
-                    )
-            );
-            if (userList != null)
-                user = userList.getLast();
+            user = EntityManager.INSTANCE.create(user);
 
             log.info("✅ User created successfully: " + login);
 
             HttpSession session = req.getSession(true);
-            session.setAttribute("user_id", user.getId());
-            session.setAttribute("user_login", user.getLogin());
+            session.setAttribute(SessionConstants.USER_ID, user.getId());
+            session.setAttribute(SessionConstants.USER_LOGIN, user.getLogin());
             resp.sendRedirect(req.getContextPath() + "/main");
 
         } catch (Exception e) {
             log.severe("💥 RegisterServlet: Error registering user - " + e.getMessage());
-            resp.sendRedirect(req.getContextPath() + "/auth/register?error=duplicate");
+            resp.sendRedirect(req.getContextPath() + "/register?error=duplicate");
         }
     }
 }

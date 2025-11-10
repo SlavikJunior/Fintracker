@@ -12,9 +12,8 @@ public class AuthService {
     public User authenticate(String login, String password) {
         try {
             System.out.println("🔧 Auth attempt for: " + login);
-            List<User> users = EntityManager.INSTANCE.get(User.class, Map.of("login", login));
-            if (users != null && !users.isEmpty()) {
-                User user = users.get(0);
+            User user = EntityManager.INSTANCE.getUnique(User.class, Map.of("login", login));
+            if (user != null) {
                 System.out.println("✅ User found: " + user.getLogin() + ", ID: " + user.getId());
 
                 String hashedPassword = PasswordHashUtil.hashPassword(password);
