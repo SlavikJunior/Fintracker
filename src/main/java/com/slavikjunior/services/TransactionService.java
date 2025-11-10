@@ -1,3 +1,4 @@
+// TransactionService.java
 package com.slavikjunior.services;
 
 import java.math.BigDecimal;
@@ -9,9 +10,9 @@ import com.slavikjunior.models.Transaction;
 
 public class TransactionService {
 
-    public boolean createTransaction(int userId, BigDecimal amount, String category, String description) {
+    public boolean createTransaction(int userId, BigDecimal amount, String category, String description, String type) {
         try {
-            Transaction transaction = new Transaction(0, userId, amount, category, description);
+            Transaction transaction = new Transaction(0, userId, amount, category, description, type);
             EntityManager.INSTANCE.create(transaction);
             return true;
         } catch (Exception e) {
@@ -22,8 +23,19 @@ public class TransactionService {
 
     public List<Transaction> getUserTransactions(int userId) {
         try {
-            // Ищем транзакции по user_id в таблице transactions
             return EntityManager.INSTANCE.get(Transaction.class, Map.of("user_id", userId));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of();
+        }
+    }
+
+    public List<Transaction> getUserTransactionsWithFilters(int userId, String type, String category, String startDate, String endDate) {
+        try {
+            Map<String, Object> filters = Map.of("user_id", userId);
+            // Здесь будет логика фильтрации по типу, категории и датам
+            // Пока возвращаем все транзакции пользователя
+            return EntityManager.INSTANCE.get(Transaction.class, filters);
         } catch (Exception e) {
             e.printStackTrace();
             return List.of();

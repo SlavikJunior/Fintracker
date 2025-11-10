@@ -1,13 +1,21 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="com.slavikjunior.models.Transaction" %>
+<%@ page import="com.slavikjunior.models.TransactionGroup" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="com.slavikjunior.util.SessionConstants" %>
+<%@ page import="java.math.BigDecimal" %>
 <%
-    List<Transaction> transactions = (List<Transaction>) request.getAttribute("transactions");
+    List<TransactionGroup> transactionGroups = (List<TransactionGroup>) request.getAttribute("transactionGroups");
+    BigDecimal totalIncome = (BigDecimal) request.getAttribute("totalIncome");
+    BigDecimal totalExpense = (BigDecimal) request.getAttribute("totalExpense");
+    BigDecimal totalBalance = (BigDecimal) request.getAttribute("totalBalance");
+
     String error = request.getParameter("error");
     String success = request.getParameter("success");
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm");
+    SimpleDateFormat dayFormat = new SimpleDateFormat("dd.MM.yyyy");
+    SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM yyyy", new java.util.Locale("ru"));
 %>
 <!DOCTYPE html>
 <html lang="ru">
@@ -68,6 +76,14 @@
             <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
 
             <div class="form-group">
+                <label for="type"><i class="fas fa-exchange-alt"></i> Тип операции:</label>
+                <select id="type" name="type" required>
+                    <option value="EXPENSE">Расход</option>
+                    <option value="INCOME">Доход</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label for="amount"><i class="fas fa-ruble-sign"></i> Сумма:</label>
                 <input type="number" step="0.01" id="amount" name="amount" placeholder="0.00" required>
             </div>
@@ -76,14 +92,23 @@
                 <label for="category"><i class="fas fa-tags"></i> Категория:</label>
                 <select id="category" name="category" required>
                     <option value="">Выберите категорию</option>
-                    <option value="Еда">Еда</option>
-                    <option value="Транспорт">Транспорт</option>
-                    <option value="Жилье">Жилье</option>
-                    <option value="Развлечения">Развлечения</option>
-                    <option value="Здоровье">Здоровье</option>
-                    <option value="Одежда">Одежда</option>
-                    <option value="Образование">Образование</option>
-                    <option value="Другое">Другое</option>
+                    <optgroup label="Доходы">
+                        <option value="Зарплата">Зарплата</option>
+                        <option value="Фриланс">Фриланс</option>
+                        <option value="Инвестиции">Инвестиции</option>
+                        <option value="Подарки">Подарки</option>
+                        <option value="Прочее">Прочее</option>
+                    </optgroup>
+                    <optgroup label="Расходы">
+                        <option value="Еда">Еда</option>
+                        <option value="Транспорт">Транспорт</option>
+                        <option value="Жилье">Жилье</option>
+                        <option value="Развлечения">Развлечения</option>
+                        <option value="Здоровье">Здоровье</option>
+                        <option value="Одежда">Одежда</option>
+                        <option value="Образование">Образование</option>
+                        <option value="Другое">Другое</option>
+                    </optgroup>
                 </select>
             </div>
 
@@ -97,22 +122,105 @@
     </section>
 
     <section class="transactions">
+        <div class="total-summary">
+            <div class="total-item total-income">
+                <h3><i class="fas fa-arrow-up"></i> Общие доходы</h3>
+                <p class="income-amount"><%= totalIncome != null ? totalIncome : "0.00" %> ₽</p>
+            </div>
+            <div class="total-item total-expense">
+                <h3><i class="fas fa-arrow-down"></i> Общие расходы</h3>
+                <p class="expense-amount"><%= totalExpense != null ? totalExpense : "0.00" %> ₽</p>
+            </div>
+            <div class="total-item total-balance">
+                <h3><i class="fas fa-balance-scale"></i> Баланс</h3>
+                <p class="<%=
+                    totalBalance != null ?
+                    (totalBalance.compareTo(BigDecimal.ZERO) > 0 ? "balance-positive" :
+                     totalBalance.compareTo(BigDecimal.ZERO) < 0 ? "balance-negative" : "balance-zero")
+                    : "balance-zero" %>">
+                    <%= totalBalance != null ? totalBalance : "0.00" %> ₽
+                </p>
+            </div>
+        </div>
+
+        <div class="filters-section">
+            <h3><i class="fas fa-filter"></i> Фильтры</h3>
+            <form method="get" action="${pageContext.request.contextPath}/main">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="typeFilter">Тип:</label>
+                        <select id="typeFilter" name="type">
+                            <option value="">Все</option>
+                            <option value="INCOME">Доходы</option>
+                            <option value="EXPENSE">Расходы</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="categoryFilter">Категория:</label>
+                        <select id="categoryFilter" name="category">
+                            <option value="">Все категории</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="startDate">С:</label>
+                        <input type="date" id="startDate" name="startDate">
+                    </div>
+                    <div class="filter-group">
+                        <label for="endDate">По:</label>
+                        <input type="date" id="endDate" name="endDate">
+                    </div>
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Применить</button>
+                        <a href="${pageContext.request.contextPath}/main" class="btn btn-secondary"><i class="fas fa-times"></i> Сбросить</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
         <h2><i class="fas fa-history"></i> История транзакций</h2>
-        <% if (transactions != null && !transactions.isEmpty()) { %>
+        <% if (transactionGroups != null && !transactionGroups.isEmpty()) {
+            for (TransactionGroup group : transactionGroups) {
+        %>
+        <div class="day-header">
+            <div class="day-info">
+                <h3><%= dayFormat.format(group.getDate()) %></h3>
+                <span><%= monthFormat.format(group.getDate()) %></span>
+            </div>
+            <div class="day-totals">
+                <span class="income-amount">+<%= group.getDayIncome() %> ₽</span>
+                <span class="expense-amount">-<%= group.getDayExpense() %> ₽</span>
+                <span class="<%=
+                        group.getDayBalance().compareTo(BigDecimal.ZERO) > 0 ? "balance-positive" :
+                        group.getDayBalance().compareTo(BigDecimal.ZERO) < 0 ? "balance-negative" : "balance-zero" %>">
+                        <%= group.getDayBalance().compareTo(BigDecimal.ZERO) > 0 ? "+" : "" %><%= group.getDayBalance() %> ₽
+                    </span>
+            </div>
+        </div>
+
         <table class="transaction-table">
             <thead>
             <tr>
+                <th>Тип</th>
                 <th>Сумма</th>
                 <th>Категория</th>
                 <th>Описание</th>
-                <th>Дата</th>
+                <th>Время</th>
                 <th>Действия</th>
             </tr>
             </thead>
             <tbody>
-            <% for (Transaction transaction : transactions) { %>
+            <% for (Transaction transaction : group.getTransactions()) { %>
             <tr>
-                <td class="amount"><%= transaction.getAmount() %> ₽</td>
+                <td class="type">
+                    <% if ("INCOME".equals(transaction.getType())) { %>
+                    <span class="income-badge"><i class="fas fa-arrow-up"></i> Доход</span>
+                    <% } else { %>
+                    <span class="expense-badge"><i class="fas fa-arrow-down"></i> Расход</span>
+                    <% } %>
+                </td>
+                <td class="<%= "INCOME".equals(transaction.getType()) ? "income-amount" : "expense-amount" %>">
+                    <%= "INCOME".equals(transaction.getType()) ? "+" : "-" %><%= transaction.getAmount() %> ₽
+                </td>
                 <td class="category"><%= transaction.getCategory() %></td>
                 <td class="description"><%= transaction.getDescription() != null ? transaction.getDescription() : "" %></td>
                 <td class="date">
@@ -130,11 +238,13 @@
             <% } %>
             </tbody>
         </table>
-        <% } else { %>
+        <% }
+        } else { %>
         <p class="no-data"><i class="fas fa-info-circle"></i> У вас пока нет транзакций</p>
         <% } %>
     </section>
 </div>
+
 <footer class="footer">
     <div class="footer-content">
         <span><i class="fas fa-wallet"></i> AI FinTracker</span>

@@ -46,3 +46,4 @@ mvnw
 mvnw.cmd
 src/main/java/com/slavikjunior/secrets/*
 *.iml
+notes.txt

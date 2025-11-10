@@ -27,20 +27,22 @@ public class TransactionServlet extends HttpServlet {
         }
     }
 
+    // TransactionServlet.java - в методе addTransaction
     private void addTransaction(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         int userId = getUserId(req);
         String amountStr = req.getParameter("amount");
         String category = req.getParameter("category");
         String description = req.getParameter("description");
+        String type = req.getParameter("type"); // Новый параметр
 
-        if (amountStr == null || amountStr.isEmpty() || category == null || category.isEmpty()) {
+        if (amountStr == null || amountStr.isEmpty() || category == null || category.isEmpty() || type == null) {
             resp.sendRedirect(req.getContextPath() + "/main?error=invalid_data");
             return;
         }
 
         try {
             BigDecimal amount = new BigDecimal(amountStr);
-            boolean success = transactionService.createTransaction(userId, amount, category, description);
+            boolean success = transactionService.createTransaction(userId, amount, category, description, type);
 
             if (success) {
                 resp.sendRedirect(req.getContextPath() + "/main?success=true");

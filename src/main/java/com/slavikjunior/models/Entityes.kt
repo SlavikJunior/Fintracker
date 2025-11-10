@@ -50,7 +50,10 @@ constructor(
     val description: String? = null,
 
     @Column(name = "created_at", type = java.sql.Types.TIMESTAMP, nullable = true)
-    val createdAt: Timestamp = Timestamp(System.currentTimeMillis())
+    val createdAt: Timestamp = Timestamp(System.currentTimeMillis()),
+
+    @Column(name = "type", type = java.sql.Types.VARCHAR, nullable = false)
+    val type: String
 ) : Entity
 
 @Table(name = "categories")
