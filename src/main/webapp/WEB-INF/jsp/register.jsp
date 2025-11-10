@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="auth-page">
 <div class="auth-container">
     <h2><i class="fas fa-user-plus"></i> Регистрация</h2>
     <% if (request.getAttribute("errorMessage") != null) { %>
@@ -32,5 +32,10 @@
     </form>
     <a href="${pageContext.request.contextPath}/auth" class="back-link"><i class="fas fa-arrow-left"></i> Назад</a>
 </div>
+<footer class="footer">
+    <div class="footer-content">
+        <span>AI FinTracker © 2025</span>
+    </div>
+</footer>
 </body>
 </html>

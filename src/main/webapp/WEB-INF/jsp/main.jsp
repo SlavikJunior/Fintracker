@@ -135,5 +135,14 @@
         <% } %>
     </section>
 </div>
+<footer class="footer">
+    <div class="footer-content">
+        <span><i class="fas fa-wallet"></i> AI FinTracker</span>
+        <span>•</span>
+        <span>Управляйте финансами легко</span>
+        <span>•</span>
+        <span>© 2025</span>
+    </div>
+</footer>
 </body>
 </html>

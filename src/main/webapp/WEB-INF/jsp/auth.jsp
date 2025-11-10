@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body class="auth-page">
 <div class="hero">
     <h1>AI FinTracker</h1>
     <p>Ваш умный помощник по учету расходов. Отслеживайте финансы легко и эффективно!</p>
@@ -21,5 +21,13 @@
         </a>
     </div>
 </div>
+
+<footer class="footer">
+    <div class="footer-content">
+        <span><i class="fas fa-code"></i> Сделано с ❤️ для ваших финансов</span>
+        <span>•</span>
+        <span>AI FinTracker © 2025</span>
+    </div>
+</footer>
 </body>
 </html>

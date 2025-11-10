@@ -32,5 +32,10 @@
   </form>
   <a href="${pageContext.request.contextPath}/auth" class="back-link"><i class="fas fa-arrow-left"></i> Назад</a>
 </div>
+<footer class="footer">
+  <div class="footer-content">
+    <span>AI FinTracker © 2025</span>
+  </div>
+</footer>
 </body>
 </html>
