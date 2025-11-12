@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вход в AI FinTracker</title>
+    <title>Вход в FinTracker</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -29,10 +29,6 @@
     <a href="${pageContext.request.contextPath}/auth" class="back-link"><i class="fas fa-arrow-left"></i> Назад</a>
 </div>
 
-<footer class="footer">
-    <div class="footer-content">
-        <span>AI FinTracker © 2025</span>
-    </div>
-</footer>
+<jsp:include page="/WEB-INF/jsp/footer.jsp"/>
 </body>
 </html>

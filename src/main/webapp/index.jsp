@@ -10,7 +10,7 @@
 </head>
 <body>
 <div class="hero">
-    <h1>AI FinTracker</h1>
+    <h1>FinTracker</h1>
     <p>Ваш умный помощник по учету расходов. Отслеживайте финансы легко и эффективно!</p>
     <div class="auth-buttons">
         <a href="${pageContext.request.contextPath}/login" class="btn btn-primary">

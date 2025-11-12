@@ -6,12 +6,12 @@ import java.util.List;
 
 public class TransactionGroup {
     private Date date;
-    private List<Transaction> transactions;
+    private List<TransactionItem> transactions;
     private BigDecimal dayIncome;
     private BigDecimal dayExpense;
     private BigDecimal dayBalance;
 
-    public TransactionGroup(Date date, List<Transaction> transactions) {
+    public TransactionGroup(Date date, List<TransactionItem> transactions) {
         this.date = date;
         this.transactions = transactions;
         calculateTotals();
@@ -21,7 +21,7 @@ public class TransactionGroup {
         this.dayIncome = BigDecimal.ZERO;
         this.dayExpense = BigDecimal.ZERO;
 
-        for (Transaction transaction : transactions) {
+        for (TransactionItem transaction : transactions) {
             if ("INCOME".equals(transaction.getType())) {
                 dayIncome = dayIncome.add(transaction.getAmount());
             } else {
@@ -33,7 +33,7 @@ public class TransactionGroup {
     }
 
     public Date getDate() { return date; }
-    public List<Transaction> getTransactions() { return transactions; }
+    public List<TransactionItem> getTransactions() { return transactions; }
     public BigDecimal getDayIncome() { return dayIncome; }
     public BigDecimal getDayExpense() { return dayExpense; }
     public BigDecimal getDayBalance() { return dayBalance; }

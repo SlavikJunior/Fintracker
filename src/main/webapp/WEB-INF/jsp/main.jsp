@@ -1,7 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
-<%@ page import="com.slavikjunior.models.Transaction" %>
 <%@ page import="com.slavikjunior.models.TransactionGroup" %>
+<%@ page import="com.slavikjunior.models.TransactionItem" %>
 <%@ page import="java.text.SimpleDateFormat" %>
 <%@ page import="com.slavikjunior.util.SessionConstants" %>
 <%@ page import="java.math.BigDecimal" %>
@@ -11,8 +11,19 @@
     BigDecimal totalExpense = (BigDecimal) request.getAttribute("totalExpense");
     BigDecimal totalBalance = (BigDecimal) request.getAttribute("totalBalance");
 
+    List<String> incomeCategories = (List<String>) request.getAttribute("incomeCategories");
+    List<String> expenseCategories = (List<String>) request.getAttribute("expenseCategories");
+    List<String> allCategories = (List<String>) request.getAttribute("allCategories");
+
     String error = request.getParameter("error");
     String success = request.getParameter("success");
+
+    // Параметры фильтров
+    String filterType = (String) request.getAttribute("filterType");
+    String filterCategory = (String) request.getAttribute("filterCategory");
+    String startDate = (String) request.getAttribute("startDate");
+    String endDate = (String) request.getAttribute("endDate");
+
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm");
     SimpleDateFormat dayFormat = new SimpleDateFormat("dd.MM.yyyy");
     SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM yyyy", new java.util.Locale("ru"));
@@ -22,13 +33,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI FinTracker - Главная</title>
+    <title>FinTracker - Главная</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 <header class="header">
-    <h1><i class="fas fa-wallet"></i> AI FinTracker</h1>
+    <h1><i class="fas fa-wallet"></i>FinTracker</h1>
     <p>Добро пожаловать! Ваш помощник по учету расходов</p>
     <div class="user-info">
         <span><i class="fas fa-user-circle"></i> Пользователь: <%= session.getAttribute(SessionConstants.USER_LOGIN) %></span>
@@ -77,7 +88,7 @@
 
             <div class="form-group">
                 <label for="type"><i class="fas fa-exchange-alt"></i> Тип операции:</label>
-                <select id="type" name="type" required>
+                <select id="type" name="type" required onchange="updateCategories()">
                     <option value="EXPENSE">Расход</option>
                     <option value="INCOME">Доход</option>
                 </select>
@@ -92,22 +103,15 @@
                 <label for="category"><i class="fas fa-tags"></i> Категория:</label>
                 <select id="category" name="category" required>
                     <option value="">Выберите категорию</option>
-                    <optgroup label="Доходы">
-                        <option value="Зарплата">Зарплата</option>
-                        <option value="Фриланс">Фриланс</option>
-                        <option value="Инвестиции">Инвестиции</option>
-                        <option value="Подарки">Подарки</option>
-                        <option value="Прочее">Прочее</option>
+                    <optgroup label="Доходы" id="income-categories">
+                        <% for (String category : incomeCategories) { %>
+                        <option value="<%= category %>"><%= category %></option>
+                        <% } %>
                     </optgroup>
-                    <optgroup label="Расходы">
-                        <option value="Еда">Еда</option>
-                        <option value="Транспорт">Транспорт</option>
-                        <option value="Жилье">Жилье</option>
-                        <option value="Развлечения">Развлечения</option>
-                        <option value="Здоровье">Здоровье</option>
-                        <option value="Одежда">Одежда</option>
-                        <option value="Образование">Образование</option>
-                        <option value="Другое">Другое</option>
+                    <optgroup label="Расходы" id="expense-categories">
+                        <% for (String category : expenseCategories) { %>
+                        <option value="<%= category %>"><%= category %></option>
+                        <% } %>
                     </optgroup>
                 </select>
             </div>
@@ -151,23 +155,28 @@
                         <label for="typeFilter">Тип:</label>
                         <select id="typeFilter" name="type">
                             <option value="">Все</option>
-                            <option value="INCOME">Доходы</option>
-                            <option value="EXPENSE">Расходы</option>
+                            <option value="INCOME" <%= "INCOME".equals(filterType) ? "selected" : "" %>>Доходы</option>
+                            <option value="EXPENSE" <%= "EXPENSE".equals(filterType) ? "selected" : "" %>>Расходы</option>
                         </select>
                     </div>
                     <div class="filter-group">
                         <label for="categoryFilter">Категория:</label>
                         <select id="categoryFilter" name="category">
                             <option value="">Все категории</option>
+                            <% for (String category : allCategories) { %>
+                            <option value="<%= category %>" <%= category.equals(filterCategory) ? "selected" : "" %>>
+                                <%= category %>
+                            </option>
+                            <% } %>
                         </select>
                     </div>
                     <div class="filter-group">
                         <label for="startDate">С:</label>
-                        <input type="date" id="startDate" name="startDate">
+                        <input type="date" id="startDate" name="startDate" value="<%= startDate != null ? startDate : "" %>">
                     </div>
                     <div class="filter-group">
                         <label for="endDate">По:</label>
-                        <input type="date" id="endDate" name="endDate">
+                        <input type="date" id="endDate" name="endDate" value="<%= endDate != null ? endDate : "" %>">
                     </div>
                     <div class="filter-actions">
                         <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Применить</button>
@@ -209,7 +218,7 @@
             </tr>
             </thead>
             <tbody>
-            <% for (Transaction transaction : group.getTransactions()) { %>
+            <% for (TransactionItem transaction : group.getTransactions()) { %>
             <tr>
                 <td class="type">
                     <% if ("INCOME".equals(transaction.getType())) { %>
@@ -231,6 +240,7 @@
                           onsubmit="return confirm('Удалить эту транзакцию?')">
                         <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
                         <input type="hidden" name="transactionId" value="<%= transaction.getId() %>">
+                        <input type="hidden" name="transactionType" value="<%= transaction.getType() %>">
                         <button type="submit" class="btn btn-danger btn-small"><i class="fas fa-trash"></i> Удалить</button>
                     </form>
                 </td>
@@ -247,12 +257,37 @@
 
 <footer class="footer">
     <div class="footer-content">
-        <span><i class="fas fa-wallet"></i> AI FinTracker</span>
+        <span><i class="fas fa-wallet"></i>FinTracker</span>
         <span>•</span>
         <span>Управляйте финансами легко</span>
         <span>•</span>
         <span>© 2025</span>
     </div>
 </footer>
+
+<script>
+    function updateCategories() {
+        const typeSelect = document.getElementById('type');
+        const categorySelect = document.getElementById('category');
+        const incomeGroup = document.getElementById('income-categories');
+        const expenseGroup = document.getElementById('expense-categories');
+
+        // Сбрасываем выбор категории
+        categorySelect.selectedIndex = 0;
+
+        if (typeSelect.value === 'INCOME') {
+            incomeGroup.style.display = 'block';
+            expenseGroup.style.display = 'none';
+        } else {
+            incomeGroup.style.display = 'none';
+            expenseGroup.style.display = 'block';
+        }
+    }
+
+    // Инициализация при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCategories();
+    });
+</script>
 </body>
 </html>

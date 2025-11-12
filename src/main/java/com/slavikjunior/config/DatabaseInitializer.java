@@ -10,7 +10,6 @@ import java.util.Properties;
 
 @WebListener
 public class DatabaseInitializer implements ServletContextListener {
-
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         Properties properties = new Properties();

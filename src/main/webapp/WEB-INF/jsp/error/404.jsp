@@ -14,12 +14,6 @@
   <p>Запрошенная страница не найдена. Возможно, она ушла на кофе-брейк.</p>
   <a href="${pageContext.request.contextPath}/auth" class="btn btn-primary"><i class="fas fa-home"></i> На главную</a>
 </div>
-<footer class="footer">
-  <div class="footer-content">
-    <span>AI FinTracker © 2025</span>
-    <span>•</span>
-    <span><a href="${pageContext.request.contextPath}/auth">На главную</a></span>
-  </div>
-</footer>
+<jsp:include page="/WEB-INF/jsp/footer.jsp"/>
 </body>
 </html>

@@ -34,10 +34,6 @@
         <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Зарегистрироваться</button>
     </form>
 </div>
-<footer class="footer">
-    <div class="footer-content">
-        <span>AI FinTracker © 2025</span>
-    </div>
-</footer>
+<jsp:include page="/WEB-INF/jsp/footer.jsp"/>
 </body>
 </html>

@@ -54,17 +54,19 @@ public class TransactionServlet extends HttpServlet {
         }
     }
 
+    // TransactionServlet.java - обновляем метод deleteTransaction
     private void deleteTransaction(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String transactionIdStr = req.getParameter("transactionId");
+        String transactionType = req.getParameter("transactionType"); // Новый параметр
 
-        if (transactionIdStr == null || transactionIdStr.isEmpty()) {
+        if (transactionIdStr == null || transactionIdStr.isEmpty() || transactionType == null) {
             resp.sendRedirect(req.getContextPath() + "/main?error=invalid_id");
             return;
         }
 
         try {
             int transactionId = Integer.parseInt(transactionIdStr);
-            boolean success = transactionService.deleteTransaction(transactionId);
+            boolean success = transactionService.deleteTransaction(transactionType, transactionId);
 
             if (success) {
                 resp.sendRedirect(req.getContextPath() + "/main?success=deleted");
