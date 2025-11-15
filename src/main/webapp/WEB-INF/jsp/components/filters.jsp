@@ -1,18 +1,17 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
-<%@ page import="java.util.Arrays" %>
 <%
-    String filterType = request.getParameter("filterType");
-    String filterCategory = request.getParameter("filterCategory");
-    String filterTag = request.getParameter("filterTag");
-    String startDate = request.getParameter("startDate");
-    String endDate = request.getParameter("endDate");
+    String filterType = (String) request.getAttribute("filterType");
+    String filterCategory = (String) request.getAttribute("filterCategory");
+    String filterTag = (String) request.getAttribute("filterTag");
+    String startDate = (String) request.getAttribute("startDate");
+    String endDate = (String) request.getAttribute("endDate");
 
-    String allCategoriesStr = request.getParameter("allCategories");
-    String userTagNamesStr = request.getParameter("userTagNames");
+    List<String> allCategories = (List<String>) request.getAttribute("allCategories");
+    List<String> userTagNames = (List<String>) request.getAttribute("userTagNames");
 
-    List<String> allCategories = Arrays.asList(allCategoriesStr.split(","));
-    List<String> userTagNames = Arrays.asList(userTagNamesStr.split(","));
+    if (allCategories == null) allCategories = java.util.Collections.emptyList();
+    if (userTagNames == null) userTagNames = java.util.Collections.emptyList();
 %>
 
 <div class="filters-section">
@@ -31,24 +30,22 @@
                 <label for="categoryFilter">Категория:</label>
                 <select id="categoryFilter" name="category">
                     <option value="">Все категории</option>
-                    <% for (String category : allCategories) {
-                        if (!category.isEmpty()) { %>
+                    <% for (String category : allCategories) { %>
                     <option value="<%= category %>" <%= category.equals(filterCategory) ? "selected" : "" %>>
                         <%= category %>
                     </option>
-                    <% } } %>
+                    <% } %>
                 </select>
             </div>
             <div class="filter-group">
                 <label for="tagFilter">Тег:</label>
                 <select id="tagFilter" name="tag">
                     <option value="">Все теги</option>
-                    <% for (String tagName : userTagNames) {
-                        if (!tagName.isEmpty()) { %>
+                    <% for (String tagName : userTagNames) { %>
                     <option value="<%= tagName %>" <%= tagName.equals(filterTag) ? "selected" : "" %>>
                         <%= tagName %>
                     </option>
-                    <% } } %>
+                    <% } %>
                 </select>
             </div>
             <div class="filter-group">

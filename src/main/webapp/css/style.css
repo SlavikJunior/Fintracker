@@ -1,3 +1,4 @@
+/* Новая цветовая палитра */
 :root {
     --blue-light: #a1c8f2;
     --blue-medium: #83b0e1;
@@ -9,6 +10,8 @@
     --orange-regular: #ff9e2a;
     --orange-dark: #ff7a00;
     --orange-darker: #d65c00;
+    --border-color: #4676c2; /* Тёмно-синий для рамок */
+    --border-light: #a1c8f2; /* Светло-синий для второстепенных рамок */
 }
 
 body {
@@ -20,6 +23,125 @@ body {
     color: #333;
 }
 
+/* Рамки для всех блоков */
+.header {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(70, 118, 194, 0.1);
+}
+
+.add-transaction, .transactions {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(70, 118, 194, 0.1);
+}
+
+.tag-management {
+    margin-top: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(70, 118, 194, 0.1);
+}
+
+.filters-section, .total-summary {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border: 2px solid var(--border-light);
+    box-shadow: 0 2px 6px rgba(161, 200, 242, 0.1);
+}
+
+.day-header {
+    background: linear-gradient(135deg, var(--blue-medium), var(--blue-dark));
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 2px solid var(--blue-darker);
+}
+
+.transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.transaction-table th, .transaction-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.transaction-table th {
+    background: var(--blue-light);
+    font-weight: 600;
+    color: var(--blue-darker);
+}
+
+.modal-content {
+    background: white;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 10px;
+    width: 500px;
+    max-width: 90%;
+    border: 3px solid var(--border-color);
+    box-shadow: 0 4px 20px rgba(70, 118, 194, 0.2);
+}
+
+.hero, .auth-container {
+    text-align: center;
+    background: white;
+    padding: 40px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin: 20px auto;
+    border: 2px solid var(--border-color);
+}
+
+/* Стили для ссылок */
+a {
+    color: var(--blue-dark);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: var(--blue-darker);
+    text-decoration: underline;
+}
+
+.back-link {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: var(--blue-regular);
+    text-decoration: none;
+}
+
+.back-link:hover {
+    color: var(--blue-dark);
+    text-decoration: underline;
+}
+
+/* Кнопки */
 .btn {
     padding: 12px;
     border: none;
@@ -30,15 +152,17 @@ body {
     display: inline-block;
     text-align: center;
     transition: all 0.3s;
+    color: white;
 }
 
 .btn:hover {
     transform: translateY(-2px);
+    text-decoration: none;
+    color: white;
 }
 
 .btn-primary {
     background: var(--blue-regular);
-    color: white;
 }
 
 .btn-primary:hover {
@@ -47,7 +171,6 @@ body {
 
 .btn-secondary {
     background: var(--orange-regular);
-    color: white;
 }
 
 .btn-secondary:hover {
@@ -56,7 +179,6 @@ body {
 
 .btn-danger {
     background: var(--orange-dark);
-    color: white;
 }
 
 .btn-danger:hover {
@@ -68,6 +190,19 @@ body {
     font-size: 14px;
 }
 
+/* Кнопка управления тегами - выделенная */
+.manage-tags-btn {
+    background: var(--blue-medium) !important;
+    border: 2px solid var(--blue-dark) !important;
+    margin-right: 5px;
+}
+
+.manage-tags-btn:hover {
+    background: var(--blue-regular) !important;
+    border-color: var(--blue-darker) !important;
+}
+
+/* Сообщения */
 .error-message {
     background: #ffebee;
     color: var(--orange-darker);
@@ -77,6 +212,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    border: 1px solid var(--orange-light);
 }
 
 .success-message {
@@ -88,21 +224,14 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    border: 1px solid var(--blue-medium);
 }
 
+/* Аутентификация */
 .auth-page {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-}
-
-.hero, .auth-container {
-    text-align: center;
-    background: white;
-    padding: 40px 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    margin: 20px auto;
 }
 
 .auth-buttons {
@@ -112,6 +241,7 @@ body {
     margin-top: 20px;
 }
 
+/* Формы */
 .form-group {
     margin-bottom: 20px;
 }
@@ -127,7 +257,7 @@ body {
 input, select {
     padding: 12px;
     margin: 10px 0;
-    border: 1px solid #ccd6e0;
+    border: 1px solid var(--border-light);
     border-radius: 5px;
     font-size: 16px;
     width: 100%;
@@ -137,16 +267,7 @@ input, select {
 input:focus, select:focus {
     border-color: var(--blue-regular);
     outline: none;
-}
-
-.header {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    box-shadow: 0 0 0 2px rgba(100, 152, 212, 0.2);
 }
 
 .footer {
@@ -158,35 +279,22 @@ input:focus, select:focus {
     background: #f8f9fa;
 }
 
+.footer a {
+    color: var(--blue-regular);
+}
+
+.footer a:hover {
+    color: var(--blue-dark);
+}
+
+/* Основной контейнер */
 .container {
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 20px;
 }
 
-.add-transaction, .transactions {
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-}
-
-.transaction-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-}
-
-.transaction-table th, .transaction-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.transaction-table th {
-    background: #f8f9fa;
-    font-weight: 600;
-}
-
+/* Цвета сумм */
 .income-amount, .balance-positive {
     color: var(--blue-darker);
     font-weight: bold;
@@ -201,22 +309,30 @@ input:focus, select:focus {
     color: #7f8c8d;
 }
 
-.income-badge {
-    background: var(--blue-light);
-    color: var(--blue-darker);
+/* Бейджи */
+.income-badge, .expense-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
     padding: 4px 8px;
     border-radius: 4px;
     font-size: 0.8em;
+    white-space: nowrap;
+}
+
+.income-badge {
+    background: var(--blue-light);
+    color: var(--blue-darker);
+    border: 1px solid var(--blue-medium);
 }
 
 .expense-badge {
     background: var(--orange-light);
     color: var(--orange-darker);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8em;
+    border: 1px solid var(--orange-medium);
 }
 
+/* Теги с индивидуальными цветами */
 .tag-badge {
     display: inline-block;
     padding: 2px 8px;
@@ -224,24 +340,54 @@ input:focus, select:focus {
     font-size: 0.8em;
     margin: 2px;
     color: white;
-    background: var(--blue-regular);
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.day-header {
-    background: linear-gradient(135deg, var(--blue-medium), var(--blue-dark));
-    color: white;
-    padding: 15px;
-    border-radius: 8px;
-    margin: 15px 0;
+/* Стили для чекбоксов тегов в модальном окне */
+.tag-checkboxes {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
 }
 
-.filters-section, .total-summary {
-    background: white;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 15px;
+.tag-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+}
+
+.tag-checkbox:hover {
+    background-color: #f5f5f5;
+}
+
+.tag-checkbox input[type="checkbox"] {
+    margin: 0;
+    width: auto;
+}
+
+.day-info h3 {
+    margin: 0;
+    color: white;
+    font-size: 1.2em;
+}
+
+.day-totals {
+    display: flex;
+    gap: 20px;
+    font-size: 0.9em;
+}
+
+.day-totals span {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: white;
 }
 
 .filter-row {
@@ -257,6 +403,7 @@ input:focus, select:focus {
     text-align: center;
 }
 
+/* Модальное окно */
 .modal {
     display: none;
     position: fixed;
@@ -268,15 +415,72 @@ input:focus, select:focus {
     background: rgba(0, 0, 0, 0.5);
 }
 
-.modal-content {
-    background: white;
-    margin: 10% auto;
-    padding: 20px;
-    border-radius: 10px;
-    width: 500px;
-    max-width: 90%;
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
 }
 
+.close:hover {
+    color: #000;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+/* Действия в таблице */
+.actions {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.actions form {
+    display: inline;
+    margin: 0;
+}
+
+.tag-form {
+    margin-bottom: 20px;
+}
+
+.form-row {
+    display: flex;
+    gap: 10px;
+    align-items: end;
+}
+
+.form-row .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.tag-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.no-tags {
+    color: #95a5a6;
+    font-style: italic;
+    font-size: 0.9em;
+}
+
+/* Адаптивность */
 @media (max-width: 768px) {
     .container {
         grid-template-columns: 1fr;
@@ -288,5 +492,19 @@ input:focus, select:focus {
 
     .auth-buttons {
         flex-direction: column;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .day-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .day-totals {
+        justify-content: center;
     }
 }

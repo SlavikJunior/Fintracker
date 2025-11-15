@@ -23,7 +23,9 @@
                     <% for (Tag tag : userTags) { %>
                     <label class="tag-checkbox">
                         <input type="checkbox" name="tagIds" value="<%= tag.getId() %>">
-                        <span class="tag-badge"><%= tag.getName() %></span>
+                        <span class="tag-badge" style="background-color: <%= tag.getColor() != null ? tag.getColor() : "#6498d4" %>;">
+                                <%= tag.getName() %>
+                            </span>
                     </label>
                     <% } %>
                     <% } else { %>
@@ -33,8 +35,12 @@
             </div>
 
             <div class="modal-actions">
-                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Сохранить теги</button>
-                <button type="button" class="btn btn-secondary" id="closeModal"><i class="fas fa-times"></i> Отмена</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Сохранить теги
+                </button>
+                <button type="button" class="btn btn-secondary" id="closeModal">
+                    <i class="fas fa-times"></i> Отмена
+                </button>
             </div>
         </form>
     </div>

@@ -1,4 +1,3 @@
-// TransactionService.java
 package com.slavikjunior.services;
 
 import com.slavikjunior.deorm.orm.EntityManager;
@@ -36,22 +35,33 @@ public class TransactionService {
         List<TransactionItem> allTransactions = new ArrayList<>();
 
         try {
+            // Доходы
             List<IncomeTransaction> incomes = EntityManager.INSTANCE.get(IncomeTransaction.class, Map.of("user_id", userId));
             if (incomes != null) {
-                allTransactions.addAll(incomes.stream()
-                        .map(income -> new TransactionItemWrapper(income, "INCOME",
-                                tagService.getTagNamesForTransaction(income.getId(), "INCOME")))
-                        .collect(Collectors.toList()));
+                for (IncomeTransaction income : incomes) {
+                    List<Tag> tags = tagService.getTagsForTransaction(income.getId(), "INCOME");
+                    allTransactions.add(new TransactionWithTags(
+                            income.getId(), income.getUserId(), income.getAmount(),
+                            income.getCategory(), income.getDescription(), income.getCreatedAt(),
+                            "INCOME", tags
+                    ));
+                }
             }
 
+            // Расходы
             List<ExpenseTransaction> expenses = EntityManager.INSTANCE.get(ExpenseTransaction.class, Map.of("user_id", userId));
             if (expenses != null) {
-                allTransactions.addAll(expenses.stream()
-                        .map(expense -> new TransactionItemWrapper(expense, "EXPENSE",
-                                tagService.getTagNamesForTransaction(expense.getId(), "EXPENSE")))
-                        .collect(Collectors.toList()));
+                for (ExpenseTransaction expense : expenses) {
+                    List<Tag> tags = tagService.getTagsForTransaction(expense.getId(), "EXPENSE");
+                    allTransactions.add(new TransactionWithTags(
+                            expense.getId(), expense.getUserId(), expense.getAmount(),
+                            expense.getCategory(), expense.getDescription(), expense.getCreatedAt(),
+                            "EXPENSE", tags
+                    ));
+                }
             }
 
+            // Сортировка по дате (новые сверху)
             allTransactions.sort((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()));
 
         } catch (Exception e) {
@@ -65,7 +75,6 @@ public class TransactionService {
                                                                 LocalDate startDate, LocalDate endDate) {
         List<TransactionItem> filteredTransactions = getAllUserTransactions(userId);
 
-        // Применяем фильтры
         if (type != null && !type.isEmpty()) {
             filteredTransactions = filteredTransactions.stream()
                     .filter(t -> type.equals(t.getType()))
@@ -81,8 +90,7 @@ public class TransactionService {
         if (startDate != null) {
             Timestamp startTimestamp = Timestamp.valueOf(startDate.atStartOfDay());
             filteredTransactions = filteredTransactions.stream()
-                    .filter(t -> t.getCreatedAt().after(startTimestamp) ||
-                            t.getCreatedAt().equals(startTimestamp))
+                    .filter(t -> t.getCreatedAt().after(startTimestamp) || t.getCreatedAt().equals(startTimestamp))
                     .collect(Collectors.toList());
         }
 
@@ -109,26 +117,22 @@ public class TransactionService {
         }
     }
 
-    // TransactionService.java - исправленные методы
     public List<String> getIncomeCategories() {
         try {
-            // Теперь передаем null вместо Map.of() - ORM обработает это корректно
             List<IncomeCategory> categories = EntityManager.INSTANCE.get(IncomeCategory.class, null);
             if (categories != null && !categories.isEmpty()) {
                 return categories.stream().map(IncomeCategory::getName).collect(Collectors.toList());
             } else {
-                // Fallback если таблица категорий пустая
                 return Arrays.asList("Зарплата", "Фриланс", "Инвестиции", "Подарки", "Прочее");
             }
         } catch (Exception e) {
-            System.err.println("⚠️ Error loading income categories: " + e.getMessage());
+            System.err.println("Error loading income categories: " + e.getMessage());
             return Arrays.asList("Зарплата", "Фриланс", "Инвестиции", "Подарки", "Прочее");
         }
     }
 
     public List<String> getExpenseCategories() {
         try {
-            // Передаем null - ORM выполнит SELECT * FROM expense_categories
             List<ExpenseCategory> categories = EntityManager.INSTANCE.get(ExpenseCategory.class, null);
             if (categories != null && !categories.isEmpty()) {
                 return categories.stream().map(ExpenseCategory::getName).collect(Collectors.toList());
@@ -136,85 +140,8 @@ public class TransactionService {
                 return Arrays.asList("Еда", "Транспорт", "Жилье", "Развлечения", "Здоровье", "Одежда", "Образование", "Другое");
             }
         } catch (Exception e) {
-            System.err.println("⚠️ Error loading expense categories: " + e.getMessage());
+            System.err.println("Error loading expense categories: " + e.getMessage());
             return Arrays.asList("Еда", "Транспорт", "Жилье", "Развлечения", "Здоровье", "Одежда", "Образование", "Другое");
         }
-    }
-}
-
-// Вспомогательный класс для объединения транзакций
-class TransactionItemWrapper implements TransactionItem {
-    private final Object transaction;
-    private final String type;
-    private final List<String> tagNames;
-
-    public TransactionItemWrapper(Object transaction, String type, List<String> tagNames) {
-        this.transaction = transaction;
-        this.type = type;
-        this.tagNames = tagNames != null ? tagNames : new ArrayList<>();
-    }
-
-    @Override
-    public int getId() {
-        if (transaction instanceof IncomeTransaction) {
-            return ((IncomeTransaction) transaction).getId();
-        } else {
-            return ((ExpenseTransaction) transaction).getId();
-        }
-    }
-
-    @Override
-    public int getUserId() {
-        if (transaction instanceof IncomeTransaction) {
-            return ((IncomeTransaction) transaction).getUserId();
-        } else {
-            return ((ExpenseTransaction) transaction).getUserId();
-        }
-    }
-
-    @Override
-    public BigDecimal getAmount() {
-        if (transaction instanceof IncomeTransaction) {
-            return ((IncomeTransaction) transaction).getAmount();
-        } else {
-            return ((ExpenseTransaction) transaction).getAmount();
-        }
-    }
-
-    @Override
-    public String getCategory() {
-        if (transaction instanceof IncomeTransaction) {
-            return ((IncomeTransaction) transaction).getCategory();
-        } else {
-            return ((ExpenseTransaction) transaction).getCategory();
-        }
-    }
-
-    @Override
-    public String getDescription() {
-        if (transaction instanceof IncomeTransaction) {
-            return ((IncomeTransaction) transaction).getDescription();
-        } else {
-            return ((ExpenseTransaction) transaction).getDescription();
-        }
-    }
-
-    @Override
-    public Timestamp getCreatedAt() {
-        if (transaction instanceof IncomeTransaction) {
-            return ((IncomeTransaction) transaction).getCreatedAt();
-        } else {
-            return ((ExpenseTransaction) transaction).getCreatedAt();
-        }
-    }
-
-    @Override
-    public String getType() {
-        return type;
-    }
-
-    @Override
-    public List<String> getTagNames() {
-        return tagNames;
     }
 }

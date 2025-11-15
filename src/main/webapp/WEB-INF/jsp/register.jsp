@@ -30,7 +30,9 @@
         </div>
         <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Зарегистрироваться</button>
     </form>
-    <a href="${pageContext.request.contextPath}/auth" class="back-link"><i class="fas fa-arrow-left"></i> Назад</a>
+    <a href="${pageContext.request.contextPath}/auth" class="back-link btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Назад
+    </a>
 </div>
 <jsp:include page="/WEB-INF/jsp/footer.jsp"/>
 </body>

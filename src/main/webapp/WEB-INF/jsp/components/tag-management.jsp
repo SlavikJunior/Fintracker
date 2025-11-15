@@ -2,19 +2,13 @@
 <%@ page import="com.slavikjunior.models.Tag" %>
 <%@ page import="java.util.List" %>
 <%
-    // В JSP нельзя напрямую передавать объекты через jsp:param
-    // Нужно получить userTags из request scope или создать пустой список
-    List<Tag> userTags = java.util.Collections.emptyList();
-    Object userTagsObj = request.getAttribute("userTags");
-    if (userTagsObj instanceof List) {
-        userTags = (List<Tag>) userTagsObj;
-    }
+    List<Tag> userTags = (List<Tag>) request.getAttribute("userTags");
+    if (userTags == null) userTags = java.util.Collections.emptyList();
 %>
 
 <div class="tag-management">
     <h3><i class="fas fa-tags"></i> Управление тегами</h3>
 
-    <!-- Форма создания тега -->
     <form action="${pageContext.request.contextPath}/main" method="post" class="tag-form">
         <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
         <input type="hidden" name="action" value="createTag">
@@ -27,7 +21,7 @@
 
             <div class="form-group">
                 <label for="tagColor">Цвет:</label>
-                <input type="color" id="tagColor" name="tagColor" value="#3498db" title="Выберите цвет тега">
+                <input type="color" id="tagColor" name="tagColor" value="#6498d4" title="Выберите цвет тега">
             </div>
 
             <div class="form-group">
@@ -38,12 +32,11 @@
         </div>
     </form>
 
-    <!-- Список тегов пользователя -->
     <div class="tag-list">
-        <% if (userTags != null && !userTags.isEmpty()) { %>
+        <% if (!userTags.isEmpty()) { %>
         <% for (Tag tag : userTags) { %>
         <div class="tag-item">
-                <span class="tag-badge" style="background-color: <%= tag.getColor() != null ? tag.getColor() : "#3498db" %>;">
+                <span class="tag-badge" style="background-color: <%= tag.getColor() != null ? tag.getColor() : "#6498d4" %>;">
                     <%= tag.getName() %>
                 </span>
             <form action="${pageContext.request.contextPath}/main" method="post"

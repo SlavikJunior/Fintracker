@@ -1,12 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
-<%@ page import="java.util.Arrays" %>
 <%
-    String incomeCategoriesStr = request.getParameter("incomeCategories");
-    String expenseCategoriesStr = request.getParameter("expenseCategories");
-
-    List<String> incomeCategories = Arrays.asList(incomeCategoriesStr.split(","));
-    List<String> expenseCategories = Arrays.asList(expenseCategoriesStr.split(","));
+    List<String> incomeCategories = (List<String>) request.getAttribute("incomeCategories");
+    List<String> expenseCategories = (List<String>) request.getAttribute("expenseCategories");
+    if (incomeCategories == null) incomeCategories = java.util.Collections.emptyList();
+    if (expenseCategories == null) expenseCategories = java.util.Collections.emptyList();
 %>
 
 <h2><i class="fas fa-plus-circle"></i> Добавить транзакцию</h2>
@@ -31,16 +29,14 @@
         <select id="category" name="category" required>
             <option value="">Выберите категорию</option>
             <optgroup label="Доходы" id="income-categories">
-                <% for (String category : incomeCategories) {
-                    if (!category.isEmpty()) { %>
+                <% for (String category : incomeCategories) { %>
                 <option value="<%= category %>"><%= category %></option>
-                <% } } %>
+                <% } %>
             </optgroup>
             <optgroup label="Расходы" id="expense-categories">
-                <% for (String category : expenseCategories) {
-                    if (!category.isEmpty()) { %>
+                <% for (String category : expenseCategories) { %>
                 <option value="<%= category %>"><%= category %></option>
-                <% } } %>
+                <% } %>
             </optgroup>
         </select>
     </div>

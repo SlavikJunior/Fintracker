@@ -165,7 +165,6 @@ public class MainServlet extends HttpServlet {
     private void setupDateFormats(HttpServletRequest request) {
         request.setAttribute("dateFormat", new SimpleDateFormat("dd.MM.yyyy HH:mm"));
         request.setAttribute("dayFormat", new SimpleDateFormat("dd.MM.yyyy"));
-        request.setAttribute("monthFormat", new SimpleDateFormat("MMMM yyyy", new Locale("ru")));
     }
 
     private void setupFilterAttributes(HttpServletRequest request, Map<String, String> filters) {

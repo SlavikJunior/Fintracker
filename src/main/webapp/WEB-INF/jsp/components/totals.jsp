@@ -1,13 +1,13 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.math.BigDecimal" %>
 <%
-    String totalIncomeStr = request.getParameter("totalIncome");
-    String totalExpenseStr = request.getParameter("totalExpense");
-    String totalBalanceStr = request.getParameter("totalBalance");
+    BigDecimal totalIncome = (BigDecimal) request.getAttribute("totalIncome");
+    BigDecimal totalExpense = (BigDecimal) request.getAttribute("totalExpense");
+    BigDecimal totalBalance = (BigDecimal) request.getAttribute("totalBalance");
 
-    BigDecimal totalIncome = new BigDecimal(totalIncomeStr);
-    BigDecimal totalExpense = new BigDecimal(totalExpenseStr);
-    BigDecimal totalBalance = new BigDecimal(totalBalanceStr);
+    if (totalIncome == null) totalIncome = BigDecimal.ZERO;
+    if (totalExpense == null) totalExpense = BigDecimal.ZERO;
+    if (totalBalance == null) totalBalance = BigDecimal.ZERO;
 %>
 
 <div class="total-summary">
@@ -21,10 +21,7 @@
     </div>
     <div class="total-item total-balance">
         <h3><i class="fas fa-balance-scale"></i> Баланс</h3>
-        <p class="<%=
-            totalBalance.compareTo(BigDecimal.ZERO) > 0 ? "balance-positive" :
-            totalBalance.compareTo(BigDecimal.ZERO) < 0 ? "balance-negative" : "balance-zero"
-        %>">
+        <p class="balance-<%= totalBalance.compareTo(BigDecimal.ZERO) > 0 ? "positive" : totalBalance.compareTo(BigDecimal.ZERO) < 0 ? "negative" : "zero" %>">
             <%= totalBalance %> ₽
         </p>
     </div>
