@@ -32,48 +32,30 @@ public class TransactionService {
         }
     }
 
-    // В методе getAllUserTransactions обновляем:
     public List<TransactionItem> getAllUserTransactions(int userId) {
         List<TransactionItem> allTransactions = new ArrayList<>();
 
         try {
-            // Получаем доходы
             List<IncomeTransaction> incomes = EntityManager.INSTANCE.get(IncomeTransaction.class, Map.of("user_id", userId));
             if (incomes != null) {
                 allTransactions.addAll(incomes.stream()
-                        .map(income -> {
-                            List<String> tagNames = Collections.emptyList();
-                            try {
-                                tagNames = tagService.getTagNamesForTransaction(income.getId(), "INCOME");
-                            } catch (Exception e) {
-                                log.warning("⚠️ Error loading tags for income transaction " + income.getId());
-                            }
-                            return new TransactionItemWrapper(income, "INCOME", tagNames);
-                        })
+                        .map(income -> new TransactionItemWrapper(income, "INCOME",
+                                tagService.getTagNamesForTransaction(income.getId(), "INCOME")))
                         .collect(Collectors.toList()));
             }
 
-            // Получаем расходы
             List<ExpenseTransaction> expenses = EntityManager.INSTANCE.get(ExpenseTransaction.class, Map.of("user_id", userId));
             if (expenses != null) {
                 allTransactions.addAll(expenses.stream()
-                        .map(expense -> {
-                            List<String> tagNames = Collections.emptyList();
-                            try {
-                                tagNames = tagService.getTagNamesForTransaction(expense.getId(), "EXPENSE");
-                            } catch (Exception e) {
-                                log.warning("⚠️ Error loading tags for expense transaction " + expense.getId());
-                            }
-                            return new TransactionItemWrapper(expense, "EXPENSE", tagNames);
-                        })
+                        .map(expense -> new TransactionItemWrapper(expense, "EXPENSE",
+                                tagService.getTagNamesForTransaction(expense.getId(), "EXPENSE")))
                         .collect(Collectors.toList()));
             }
 
-            // Сортируем по дате
             allTransactions.sort((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()));
 
         } catch (Exception e) {
-            System.err.println("⚠️ Error loading user transactions: " + e.getMessage());
+            log.severe("Error loading user transactions: " + e.getMessage());
         }
 
         return allTransactions;

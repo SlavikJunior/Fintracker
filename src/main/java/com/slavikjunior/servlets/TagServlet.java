@@ -7,13 +7,11 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.util.logging.Logger;
 
 @WebServlet("/tags")
 public class TagServlet extends HttpServlet {
-
     private static final Logger log = AppLogger.get(TagServlet.class);
     private TagService tagService = new TagService();
 
@@ -31,16 +29,14 @@ public class TagServlet extends HttpServlet {
         try {
             int transactionId = Integer.parseInt(transactionIdStr);
 
-            // Удаляем все текущие теги транзакции
-            clearTransactionTags(transactionId, transactionType);
+            tagService.clearTransactionTags(transactionId, transactionType);
 
-            // Добавляем новые теги
-            if (tagIds != null && tagIds.length > 0) {
+            if (tagIds != null) {
                 for (String tagIdStr : tagIds) {
                     int tagId = Integer.parseInt(tagIdStr);
                     tagService.addTagToTransaction(transactionId, transactionType, tagId);
                 }
-                log.info("✅ Added " + tagIds.length + " tags to transaction " + transactionId);
+                log.info("Added " + tagIds.length + " tags to transaction " + transactionId);
             }
 
             resp.sendRedirect(req.getContextPath() + "/main?success=tags_updated");
@@ -48,20 +44,8 @@ public class TagServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             resp.sendRedirect(req.getContextPath() + "/main?error=invalid_id");
         } catch (Exception e) {
-            log.severe("💥 Error updating transaction tags: " + e.getMessage());
+            log.severe("Error updating transaction tags: " + e.getMessage());
             resp.sendRedirect(req.getContextPath() + "/main?error=tag_update_failed");
-        }
-    }
-
-    private void clearTransactionTags(int transactionId, String transactionType) {
-        try {
-            // Получаем все текущие теги транзакции
-            var currentTags = tagService.getTagsForTransaction(transactionId, transactionType);
-            for (var tag : currentTags) {
-                tagService.removeTagFromTransaction(transactionId, transactionType, tag.getId());
-            }
-        } catch (Exception e) {
-            log.warning("⚠️ Error clearing transaction tags: " + e.getMessage());
         }
     }
 }
