@@ -3,14 +3,18 @@ package com.slavikjunior.services;
 
 import com.slavikjunior.deorm.orm.EntityManager;
 import com.slavikjunior.models.*;
+import com.slavikjunior.util.AppLogger;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class TransactionService {
+
+    private static final Logger log = AppLogger.get(TransactionService.class);
+    private TagService tagService = new TagService();
 
     public boolean createTransaction(int userId, BigDecimal amount, String category, String description, String type) {
         try {
@@ -28,27 +32,44 @@ public class TransactionService {
         }
     }
 
+    // В методе getAllUserTransactions обновляем:
     public List<TransactionItem> getAllUserTransactions(int userId) {
         List<TransactionItem> allTransactions = new ArrayList<>();
 
         try {
-            // Получаем доходы - передаем Map с условием
+            // Получаем доходы
             List<IncomeTransaction> incomes = EntityManager.INSTANCE.get(IncomeTransaction.class, Map.of("user_id", userId));
             if (incomes != null) {
                 allTransactions.addAll(incomes.stream()
-                        .map(income -> new TransactionItemWrapper(income, "INCOME"))
+                        .map(income -> {
+                            List<String> tagNames = Collections.emptyList();
+                            try {
+                                tagNames = tagService.getTagNamesForTransaction(income.getId(), "INCOME");
+                            } catch (Exception e) {
+                                log.warning("⚠️ Error loading tags for income transaction " + income.getId());
+                            }
+                            return new TransactionItemWrapper(income, "INCOME", tagNames);
+                        })
                         .collect(Collectors.toList()));
             }
 
-            // Получаем расходы - передаем Map с условием
+            // Получаем расходы
             List<ExpenseTransaction> expenses = EntityManager.INSTANCE.get(ExpenseTransaction.class, Map.of("user_id", userId));
             if (expenses != null) {
                 allTransactions.addAll(expenses.stream()
-                        .map(expense -> new TransactionItemWrapper(expense, "EXPENSE"))
+                        .map(expense -> {
+                            List<String> tagNames = Collections.emptyList();
+                            try {
+                                tagNames = tagService.getTagNamesForTransaction(expense.getId(), "EXPENSE");
+                            } catch (Exception e) {
+                                log.warning("⚠️ Error loading tags for expense transaction " + expense.getId());
+                            }
+                            return new TransactionItemWrapper(expense, "EXPENSE", tagNames);
+                        })
                         .collect(Collectors.toList()));
             }
 
-            // Сортируем по дате (новые сверху)
+            // Сортируем по дате
             allTransactions.sort((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()));
 
         } catch (Exception e) {
@@ -143,10 +164,12 @@ public class TransactionService {
 class TransactionItemWrapper implements TransactionItem {
     private final Object transaction;
     private final String type;
+    private final List<String> tagNames;
 
-    public TransactionItemWrapper(Object transaction, String type) {
+    public TransactionItemWrapper(Object transaction, String type, List<String> tagNames) {
         this.transaction = transaction;
         this.type = type;
+        this.tagNames = tagNames != null ? tagNames : new ArrayList<>();
     }
 
     @Override
@@ -206,5 +229,10 @@ class TransactionItemWrapper implements TransactionItem {
     @Override
     public String getType() {
         return type;
+    }
+
+    @Override
+    public List<String> getTagNames() {
+        return tagNames;
     }
 }
