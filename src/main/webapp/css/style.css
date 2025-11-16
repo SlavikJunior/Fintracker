@@ -1,3 +1,4 @@
+/*это глобальные переменные*/
 :root {
     --blue-light: #a1c8f2;
     --blue-medium: #83b0e1;
@@ -465,6 +466,9 @@ input:focus, select:focus {
     font-size: 0.9em;
 }
 
+/*это медиа запрос - css правило,*/
+/*подключаемое в определённых условиях*/
+/*смысл данного, адаптация под малые устройства*/
 @media (max-width: 768px) {
     .container {
         grid-template-columns: 1fr;

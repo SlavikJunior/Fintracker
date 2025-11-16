@@ -1,13 +1,20 @@
+// Скрывает/показывает категории (доходы/расходы) при смене типа транзакции.
+// Открывает модалку с тегами при клике на кнопку тегов.
+// Загружает текущие теги транзакции и ставит галочки в чекбоксах.
+
 let contextPath = document.body.dataset.contextPath || '';
 
+// Подписались за загрузку страницы
 document.addEventListener('DOMContentLoaded', () => {
     updateCategories();
 
+    // На каждую кнопку онКлик вешаем
     document.querySelectorAll('.manage-tags-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const transactionId = btn.dataset.transactionId;
             document.getElementById('modalTransactionId').value = transactionId;
 
+            // Снимаем галочки с чекбоксов
             document.querySelectorAll('input[name="tagIds"]').forEach(cb => cb.checked = false);
 
             fetch(contextPath + '/api/transaction-tags?transactionId=' + transactionId)
@@ -18,16 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (cb) cb.checked = true;
                     });
                 })
-                .catch(() => {});
-
+                .catch(() => {
+                });
             document.getElementById('tagModal').style.display = 'block';
         });
     });
 
+    // При смене категории обновляемся
     const typeSelect = document.getElementById('type');
     if (typeSelect) typeSelect.addEventListener('change', updateCategories);
 });
 
+// Скрытие/показ категорий
 function updateCategories() {
     const type = document.getElementById('type')?.value || 'EXPENSE';
     document.getElementById('income-categories').style.display = type === 'INCOME' ? 'block' : 'none';

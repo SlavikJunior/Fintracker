@@ -32,7 +32,6 @@ public class MainServlet extends HttpServlet {
             return;
         }
 
-        // === FLASH MESSAGES ===
         String flashSuccess = (String) session.getAttribute("flashSuccess");
         if (flashSuccess != null) {
             request.setAttribute("successMessage", flashSuccess);
@@ -44,7 +43,6 @@ public class MainServlet extends HttpServlet {
             request.setAttribute("errorMessage", flashError);
             session.removeAttribute("flashError");
         }
-        // ======================
 
         int userId = (int) session.getAttribute(SessionConstants.USER_ID);
 
@@ -174,9 +172,6 @@ public class MainServlet extends HttpServlet {
         List<Tag> userTags = tagService.getUserTags(userId);
         request.setAttribute("userTags", userTags);
         request.setAttribute("userTagNames", userTags.stream().map(Tag::getName).collect(Collectors.toList()));
-
-        request.setAttribute("dateFormat", new SimpleDateFormat("dd.MM.yyyy HH:mm"));
-        request.setAttribute("dayFormat", new SimpleDateFormat("dd.MM.yyyy"));
 
         filters.forEach(request::setAttribute);
     }

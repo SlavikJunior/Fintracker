@@ -1,8 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<c:set var="transactionGroups" value="${requestScope.transactionGroups}" />
-<c:set var="dateFormat" value="${requestScope.dateFormat}" />
-<c:set var="dayFormat" value="${requestScope.dayFormat}" />
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <h2><i class="fas fa-history"></i> История транзакций</h2>
 <c:choose>
@@ -10,14 +8,16 @@
     <c:forEach items="${transactionGroups}" var="group">
       <div class="day-header">
         <div class="day-info">
-          <h3>${dayFormat.format(group.date)}</h3>
+          <!-- ПРЕОБРАЗУЕМ java.sql.Date → String → Date -->
+          <fmt:formatDate value="${group.date}" pattern="dd.MM.yyyy" var="formattedDay" />
+          <h3>${formattedDay}</h3>
         </div>
         <div class="day-totals">
           <span class="income-amount">+${group.dayIncome} ₽</span>
           <span class="expense-amount">-${group.dayExpense} ₽</span>
           <span class="balance-${group.dayBalance > 0 ? 'positive' : group.dayBalance < 0 ? 'negative' : 'zero'}">
-                        ${group.dayBalance > 0 ? '+' : ''}${group.dayBalance} ₽
-                    </span>
+            ${group.dayBalance > 0 ? '+' : ''}${group.dayBalance} ₽
+          </span>
         </div>
       </div>
 
@@ -35,15 +35,14 @@
         </thead>
         <tbody>
         <c:forEach items="${group.transactions}" var="transaction">
-          <c:set var="tags" value="${transaction.tags}" />
           <tr>
             <td class="type">
               <c:choose>
                 <c:when test="${transaction.type == 'INCOME'}">
-                  <span class="income-badge"><i class="fas fa-arrow-up"></i>Доход</span>
+                  <span class="income-badge">Доход</span>
                 </c:when>
                 <c:otherwise>
-                  <span class="expense-badge"><i class="fas fa-arrow-down"></i>Расход</span>
+                  <span class="expense-badge">Расход</span>
                 </c:otherwise>
               </c:choose>
             </td>
@@ -54,11 +53,11 @@
             <td class="description">${transaction.description != null ? transaction.description : ''}</td>
             <td class="tags">
               <c:choose>
-                <c:when test="${not empty tags}">
-                  <c:forEach items="${tags}" var="tag">
-                                        <span class="tag-badge" style="background-color: ${tag.color != null ? tag.color : '#6498d4'};">
-                                            ${tag.name}
-                                        </span>
+                <c:when test="${not empty transaction.tags}">
+                  <c:forEach items="${transaction.tags}" var="tag">
+                      <span class="tag-badge" style="background-color: ${tag.color != null ? tag.color : '#6498d4'};">
+                          ${tag.name}
+                      </span>
                   </c:forEach>
                 </c:when>
                 <c:otherwise>
@@ -67,13 +66,13 @@
               </c:choose>
             </td>
             <td class="date">
-                ${dateFormat.format(transaction.createdAt)}
+              <fmt:formatDate value="${transaction.createdAt}" pattern="dd.MM.yyyy HH:mm" />
             </td>
             <td class="actions">
               <button type="button" class="btn btn-secondary btn-small manage-tags-btn"
                       data-transaction-id="${transaction.id}"
                       title="Управление тегами">
-                <i class="fas fa-tags"></i>
+                Теги
               </button>
 
               <form action="${pageContext.request.contextPath}/transactions/delete" method="post"
@@ -81,7 +80,7 @@
                 <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
                 <input type="hidden" name="transactionId" value="${transaction.id}">
                 <button type="submit" class="btn btn-danger btn-small" title="Удалить транзакцию">
-                  <i class="fas fa-trash"></i>
+                  Удалить
                 </button>
               </form>
             </td>
@@ -92,6 +91,6 @@
     </c:forEach>
   </c:when>
   <c:otherwise>
-    <p class="no-data"><i class="fas fa-info-circle"></i> У вас пока нет транзакций</p>
+    <p class="no-data">У вас пока нет транзакций</p>
   </c:otherwise>
 </c:choose>

@@ -23,7 +23,6 @@ public class RegisterServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // === FLASH MESSAGES ===
         HttpSession session = req.getSession(false);
         if (session != null) {
             String flashError = (String) session.getAttribute("flashError");
@@ -32,7 +31,6 @@ public class RegisterServlet extends HttpServlet {
                 session.removeAttribute("flashError");
             }
         }
-        // ======================
 
         req.getRequestDispatcher("/WEB-INF/jsp/register.jsp").forward(req, resp);
     }

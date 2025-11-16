@@ -21,11 +21,10 @@ public class TransactionServlet extends HttpServlet {
         HttpSession session = req.getSession(false);
         String path = req.getServletPath();
 
-        if ("/transactions".equals(path)) {
+        if ("/transactions".equals(path))
             addTransaction(req, resp, session);
-        } else if ("/transactions/delete".equals(path)) {
+        else if ("/transactions/delete".equals(path))
             deleteTransaction(req, resp, session);
-        }
     }
 
     private void addTransaction(HttpServletRequest req, HttpServletResponse resp, HttpSession session) throws IOException {

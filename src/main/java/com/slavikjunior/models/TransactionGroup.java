@@ -1,12 +1,12 @@
 package com.slavikjunior.models;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.sql.Date;
 import java.util.List;
 
 public class TransactionGroup {
-    private Date date;
-    private List<TransactionItem> transactions;
+    private final Date date;
+    private final List<TransactionItem> transactions;
     private BigDecimal dayIncome;
     private BigDecimal dayExpense;
     private BigDecimal dayBalance;
@@ -18,16 +18,15 @@ public class TransactionGroup {
     }
 
     private void calculateTotals() {
-        this.dayIncome = BigDecimal.ZERO;
-        this.dayExpense = BigDecimal.ZERO;
+        this.dayIncome = transactions.stream()
+                .filter(t -> "INCOME".equals(t.getType()))
+                .map(TransactionItem::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        for (TransactionItem transaction : transactions) {
-            if ("INCOME".equals(transaction.getType())) {
-                dayIncome = dayIncome.add(transaction.getAmount());
-            } else {
-                dayExpense = dayExpense.add(transaction.getAmount());
-            }
-        }
+        this.dayExpense = transactions.stream()
+                .filter(t -> "EXPENSE".equals(t.getType()))
+                .map(TransactionItem::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         this.dayBalance = dayIncome.subtract(dayExpense);
     }
@@ -37,4 +36,9 @@ public class TransactionGroup {
     public BigDecimal getDayIncome() { return dayIncome; }
     public BigDecimal getDayExpense() { return dayExpense; }
     public BigDecimal getDayBalance() { return dayBalance; }
+
+    @Override
+    public String toString() {
+        return "TransactionGroup{date=" + date + ", size=" + transactions.size() + "}";
+    }
 }

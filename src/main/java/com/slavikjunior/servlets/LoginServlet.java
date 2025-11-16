@@ -20,7 +20,6 @@ public class LoginServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        // === FLASH MESSAGES ===
         HttpSession session = req.getSession(false);
         if (session != null) {
             String flashError = (String) session.getAttribute("flashError");
@@ -29,7 +28,6 @@ public class LoginServlet extends HttpServlet {
                 session.removeAttribute("flashError");
             }
         }
-        // ======================
 
         req.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(req, resp);
     }
