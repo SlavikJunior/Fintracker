@@ -11,9 +11,9 @@
 <body class="auth-page">
 <div class="auth-container">
     <h2><i class="fas fa-user-plus"></i> Регистрация</h2>
-    <c:if test="${not empty requestScope.errorMessage}">
-        <div class="error-message"><i class="fas fa-exclamation-circle"></i> ${requestScope.errorMessage}</div>
-    </c:if>
+
+    <jsp:include page="components/messages.jsp"/>
+
     <form action="${pageContext.request.contextPath}/register" method="post">
         <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
         <div class="form-group">

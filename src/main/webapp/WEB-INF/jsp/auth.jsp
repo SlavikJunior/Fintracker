@@ -10,6 +10,8 @@
 </head>
 <body class="auth-page">
 <div class="hero">
+    <jsp:include page="components/messages.jsp"/>
+
     <h1>FinTracker</h1>
     <p>Ваш умный помощник по учету расходов. Отслеживайте финансы легко и эффективно!</p>
     <div class="auth-buttons">

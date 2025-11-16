@@ -21,8 +21,8 @@ import java.util.stream.Collectors;
 @WebServlet("/main")
 public class MainServlet extends HttpServlet {
     private static final Logger log = AppLogger.get(MainServlet.class);
-    private TransactionService transactionService = new TransactionService();
-    private TagService tagService = new TagService();
+    private final TransactionService transactionService = new TransactionService();
+    private final TagService tagService = new TagService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -31,6 +31,20 @@ public class MainServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/auth");
             return;
         }
+
+        // === FLASH MESSAGES ===
+        String flashSuccess = (String) session.getAttribute("flashSuccess");
+        if (flashSuccess != null) {
+            request.setAttribute("successMessage", flashSuccess);
+            session.removeAttribute("flashSuccess");
+        }
+
+        String flashError = (String) session.getAttribute("flashError");
+        if (flashError != null) {
+            request.setAttribute("errorMessage", flashError);
+            session.removeAttribute("flashError");
+        }
+        // ======================
 
         int userId = (int) session.getAttribute(SessionConstants.USER_ID);
 
@@ -54,11 +68,47 @@ public class MainServlet extends HttpServlet {
         String action = request.getParameter("action");
 
         if ("createTag".equals(action)) {
-            createTag(request, response, userId);
+            createTag(request, request.getSession(), userId);
         } else if ("deleteTag".equals(action)) {
-            deleteTag(request, response, userId);
+            deleteTag(request, request.getSession(), userId);
+        }
+
+        response.sendRedirect(request.getContextPath() + "/main");
+    }
+
+    private void createTag(HttpServletRequest request, HttpSession session, int userId) {
+        String tagName = request.getParameter("tagName");
+        String tagColor = request.getParameter("tagColor");
+
+        if (tagName == null || tagName.trim().isEmpty()) {
+            session.setAttribute("flashError", "Неверное название тега");
+            return;
+        }
+
+        Tag tag = tagService.createTag(tagName.trim(), userId, tagColor);
+        if (tag != null) {
+            session.setAttribute("flashSuccess", "Тег успешно создан");
         } else {
-            response.sendRedirect(request.getContextPath() + "/main");
+            session.setAttribute("flashError", "Тег с таким названием уже существует");
+        }
+    }
+
+    private void deleteTag(HttpServletRequest request, HttpSession session, int userId) {
+        String tagIdStr = request.getParameter("tagId");
+        if (tagIdStr == null || tagIdStr.isEmpty()) {
+            session.setAttribute("flashError", "Неверный ID тега");
+            return;
+        }
+
+        try {
+            boolean deleted = tagService.deleteTag(Integer.parseInt(tagIdStr));
+            if (deleted) {
+                session.setAttribute("flashSuccess", "Тег успешно удален");
+            } else {
+                session.setAttribute("flashError", "Ошибка при удалении тега");
+            }
+        } catch (NumberFormatException e) {
+            session.setAttribute("flashError", "Неверный ID тега");
         }
     }
 
@@ -114,9 +164,21 @@ public class MainServlet extends HttpServlet {
         request.setAttribute("totalExpense", totals.get("expense"));
         request.setAttribute("totalBalance", totals.get("balance"));
 
-        setupCategoriesAndTags(request, userId);
-        setupDateFormats(request);
-        setupFilterAttributes(request, filters);
+        request.setAttribute("incomeCategories", transactionService.getCategories("INCOME"));
+        request.setAttribute("expenseCategories", transactionService.getCategories("EXPENSE"));
+
+        List<String> allCategories = new ArrayList<>(transactionService.getCategories("INCOME"));
+        allCategories.addAll(transactionService.getCategories("EXPENSE"));
+        request.setAttribute("allCategories", allCategories);
+
+        List<Tag> userTags = tagService.getUserTags(userId);
+        request.setAttribute("userTags", userTags);
+        request.setAttribute("userTagNames", userTags.stream().map(Tag::getName).collect(Collectors.toList()));
+
+        request.setAttribute("dateFormat", new SimpleDateFormat("dd.MM.yyyy HH:mm"));
+        request.setAttribute("dayFormat", new SimpleDateFormat("dd.MM.yyyy"));
+
+        filters.forEach(request::setAttribute);
     }
 
     private List<TransactionGroup> groupTransactions(List<TransactionItem> transactions) {
@@ -146,64 +208,5 @@ public class MainServlet extends HttpServlet {
         totals.put("balance", totalIncome.subtract(totalExpense));
 
         return totals;
-    }
-
-    private void setupCategoriesAndTags(HttpServletRequest request, int userId) {
-        request.setAttribute("incomeCategories", transactionService.getCategories("INCOME"));
-        request.setAttribute("expenseCategories", transactionService.getCategories("EXPENSE"));
-
-        List<String> allCategories = new ArrayList<>(transactionService.getCategories("INCOME"));
-        allCategories.addAll(transactionService.getCategories("EXPENSE"));
-        request.setAttribute("allCategories", allCategories);
-
-        List<Tag> userTags = tagService.getUserTags(userId);
-        request.setAttribute("userTags", userTags);
-        request.setAttribute("userTagNames", userTags.stream().map(Tag::getName).collect(Collectors.toList()));
-    }
-
-    private void setupDateFormats(HttpServletRequest request) {
-        request.setAttribute("dateFormat", new SimpleDateFormat("dd.MM.yyyy HH:mm"));
-        request.setAttribute("dayFormat", new SimpleDateFormat("dd.MM.yyyy"));
-    }
-
-    private void setupFilterAttributes(HttpServletRequest request, Map<String, String> filters) {
-        filters.forEach(request::setAttribute);
-    }
-
-    private void createTag(HttpServletRequest request, HttpServletResponse response, int userId) throws IOException {
-        String tagName = request.getParameter("tagName");
-        String tagColor = request.getParameter("tagColor");
-
-        if (tagName == null || tagName.trim().isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/main?error=invalid_tag_name");
-            return;
-        }
-
-        try {
-            Tag tag = tagService.createTag(tagName.trim(), userId, tagColor);
-            if (tag != null) {
-                response.sendRedirect(request.getContextPath() + "/main?success=tag_created");
-            } else {
-                response.sendRedirect(request.getContextPath() + "/main?error=tag_already_exists");
-            }
-        } catch (Exception e) {
-            response.sendRedirect(request.getContextPath() + "/main?error=tag_creation_failed");
-        }
-    }
-
-    private void deleteTag(HttpServletRequest request, HttpServletResponse response, int userId) throws IOException {
-        String tagIdStr = request.getParameter("tagId");
-        if (tagIdStr == null || tagIdStr.isEmpty()) {
-            response.sendRedirect(request.getContextPath() + "/main?error=invalid_tag_id");
-            return;
-        }
-
-        try {
-            boolean success = tagService.deleteTag(Integer.parseInt(tagIdStr));
-            String redirect = success ? "?success=tag_deleted" : "?error=tag_deletion_failed";
-            response.sendRedirect(request.getContextPath() + "/main" + redirect);
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/main?error=invalid_tag_id");
-        }
     }
 }

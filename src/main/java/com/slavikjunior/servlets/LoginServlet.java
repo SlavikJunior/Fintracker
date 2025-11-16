@@ -3,9 +3,8 @@ package com.slavikjunior.servlets;
 import com.slavikjunior.models.User;
 import com.slavikjunior.services.AuthService;
 import com.slavikjunior.util.AppLogger;
-
 import com.slavikjunior.util.SessionConstants;
-import jakarta.servlet.*;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 import java.io.IOException;
@@ -15,14 +14,23 @@ import java.util.logging.Logger;
 public class LoginServlet extends HttpServlet {
 
     private static final Logger log = AppLogger.get(LoginServlet.class);
-    private AuthService authService = new AuthService();
+    private final AuthService authService = new AuthService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        if (req.getParameter("error") != null) {
-            req.setAttribute("errorMessage", "Неверный логин или пароль");
+
+        // === FLASH MESSAGES ===
+        HttpSession session = req.getSession(false);
+        if (session != null) {
+            String flashError = (String) session.getAttribute("flashError");
+            if (flashError != null) {
+                req.setAttribute("errorMessage", flashError);
+                session.removeAttribute("flashError");
+            }
         }
+        // ======================
+
         req.getRequestDispatcher("/WEB-INF/jsp/login.jsp").forward(req, resp);
     }
 
@@ -33,24 +41,23 @@ public class LoginServlet extends HttpServlet {
         String login = req.getParameter("login");
         String password = req.getParameter("password");
 
-        log.info("LoginServlet: Auth attempt for " + login);
+        log.info("Login attempt for: " + login);
 
-        try {
-            User user = authService.authenticate(login, password);
-            if (user == null) {
-                log.warning("Invalid credentials for: " + login);
-                resp.sendRedirect(req.getContextPath() + "/login?error=true");
-                return;
-            }
+        User user = authService.authenticate(login, password);
 
-            log.info("User authenticated successfully, ID: " + user.getId());
-            HttpSession session = req.getSession(true);
-            session.setAttribute(SessionConstants.USER_ID, user.getId());
-            session.setAttribute(SessionConstants.USER_LOGIN, user.getLogin());
-            resp.sendRedirect(req.getContextPath() + "/main");
-        } catch (Exception e) {
-            log.severe("LoginServlet: Error during authentication - " + e.getMessage());
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        HttpSession session = req.getSession(true);
+
+        if (user == null) {
+            session.setAttribute("flashError", "Неверный логин или пароль");
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
         }
+
+        log.info("User authenticated: " + user.getId());
+        session.setAttribute(SessionConstants.USER_ID, user.getId());
+        session.setAttribute(SessionConstants.USER_LOGIN, user.getLogin());
+
+        session.setAttribute("flashSuccess", "Добро пожаловать!");
+        resp.sendRedirect(req.getContextPath() + "/main");
     }
 }

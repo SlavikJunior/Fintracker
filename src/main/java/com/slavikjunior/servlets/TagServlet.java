@@ -7,21 +7,24 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.logging.Logger;
 
 @WebServlet("/tags")
 public class TagServlet extends HttpServlet {
     private static final Logger log = AppLogger.get(TagServlet.class);
-    private TagService tagService = new TagService();
+    private final TagService tagService = new TagService();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String transactionIdStr = req.getParameter("transactionId");
         String[] tagIds = req.getParameterValues("tagIds");
+        HttpSession session = req.getSession();
 
         if (transactionIdStr == null) {
-            resp.sendRedirect(req.getContextPath() + "/main?error=invalid_data");
+            session.setAttribute("flashError", "Неверные данные");
+            resp.sendRedirect(req.getContextPath() + "/main");
             return;
         }
 
@@ -35,16 +38,14 @@ public class TagServlet extends HttpServlet {
                     int tagId = Integer.parseInt(tagIdStr);
                     tagService.addTagToTransaction(transactionId, tagId);
                 }
-                log.info("Added " + tagIds.length + " tags to transaction " + transactionId);
             }
 
-            resp.sendRedirect(req.getContextPath() + "/main?success=tags_updated");
-
-        } catch (NumberFormatException e) {
-            resp.sendRedirect(req.getContextPath() + "/main?error=invalid_id");
+            session.setAttribute("flashSuccess", "Теги транзакции обновлены");
         } catch (Exception e) {
             log.severe("Error updating transaction tags: " + e.getMessage());
-            resp.sendRedirect(req.getContextPath() + "/main?error=tag_update_failed");
+            session.setAttribute("flashError", "Ошибка при обновлении тегов");
         }
+
+        resp.sendRedirect(req.getContextPath() + "/main");
     }
 }
