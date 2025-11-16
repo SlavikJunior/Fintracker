@@ -21,26 +21,22 @@ public class TagService {
         }
     }
 
-    public List<Tag> getTagsForTransaction(int transactionId, String transactionType) {
+    public List<Tag> getTagsForTransaction(int transactionId) {
         try {
             List<TransactionTag> transactionTags = EntityManager.INSTANCE.get(
                     TransactionTag.class,
-                    Map.of("transaction_id", transactionId, "transaction_type", transactionType)
+                    Map.of("transaction_id", transactionId)
             );
 
-            if (transactionTags == null || transactionTags.isEmpty()) {
+            if (transactionTags.isEmpty()) {
                 return Collections.emptyList();
             }
 
             List<Tag> tags = new ArrayList<>();
             for (TransactionTag tt : transactionTags) {
-                try {
-                    List<Tag> foundTags = EntityManager.INSTANCE.get(Tag.class, Map.of("id", tt.getTagId()));
-                    if (foundTags != null && !foundTags.isEmpty()) {
-                        tags.add(foundTags.get(0));
-                    }
-                } catch (Exception e) {
-                    log.warning("Error loading tag with id " + tt.getTagId() + ": " + e.getMessage());
+                Tag tag = EntityManager.INSTANCE.getUnique(Tag.class, Map.of("id", tt.getTagId()));
+                if (tag != null) {
+                    tags.add(tag);
                 }
             }
             return tags;
@@ -50,24 +46,24 @@ public class TagService {
         }
     }
 
-    public List<String> getTagNamesForTransaction(int transactionId, String transactionType) {
-        List<Tag> tags = getTagsForTransaction(transactionId, transactionType);
+    public List<String> getTagNamesForTransaction(int transactionId) {
+        List<Tag> tags = getTagsForTransaction(transactionId);
         return tags.stream().map(Tag::getName).collect(Collectors.toList());
     }
 
     public boolean isTagExists(String name, int userId) {
         try {
             List<Tag> existingTags = EntityManager.INSTANCE.get(Tag.class, Map.of("name", name, "user_id", userId));
-            return existingTags != null && !existingTags.isEmpty();
+            return !existingTags.isEmpty();
         } catch (Exception e) {
             log.severe("Error checking tag existence: " + e.getMessage());
             return false;
         }
     }
 
-    public boolean addTagToTransaction(int transactionId, String transactionType, int tagId) {
+    public boolean addTagToTransaction(int transactionId, int tagId) {
         try {
-            TransactionTag transactionTag = new TransactionTag(0, transactionId, tagId, transactionType.toUpperCase());
+            TransactionTag transactionTag = new TransactionTag(0, transactionId, tagId);
             EntityManager.INSTANCE.create(transactionTag);
             log.info("Tag " + tagId + " added to transaction " + transactionId);
             return true;
@@ -77,15 +73,15 @@ public class TagService {
         }
     }
 
-    public boolean removeTagFromTransaction(int transactionId, String transactionType, int tagId) {
+    public boolean removeTagFromTransaction(int transactionId, int tagId) {
         try {
-            List<TransactionTag> transactionTags = EntityManager.INSTANCE.get(
+            TransactionTag tt = EntityManager.INSTANCE.getUnique(
                     TransactionTag.class,
-                    Map.of("transaction_id", transactionId, "tag_id", tagId, "transaction_type", transactionType.toUpperCase())
+                    Map.of("transaction_id", transactionId, "tag_id", tagId)
             );
 
-            if (transactionTags != null && !transactionTags.isEmpty()) {
-                boolean deleted = EntityManager.INSTANCE.delete(TransactionTag.class, transactionTags.get(0).getId());
+            if (tt != null) {
+                boolean deleted = EntityManager.INSTANCE.delete(TransactionTag.class, tt.getId());
                 if (deleted) {
                     log.info("Tag " + tagId + " removed from transaction " + transactionId);
                 }
@@ -98,19 +94,17 @@ public class TagService {
         }
     }
 
-    public void clearTransactionTags(int transactionId, String transactionType) {
+    public void clearTransactionTags(int transactionId) {
         try {
             List<TransactionTag> currentTags = EntityManager.INSTANCE.get(
                     TransactionTag.class,
-                    Map.of("transaction_id", transactionId, "transaction_type", transactionType.toUpperCase())
+                    Map.of("transaction_id", transactionId)
             );
 
-            if (currentTags != null) {
-                for (TransactionTag tag : currentTags) {
-                    EntityManager.INSTANCE.delete(TransactionTag.class, tag.getId());
-                }
-                log.info("Cleared all tags for transaction " + transactionId);
+            for (TransactionTag tag : currentTags) {
+                EntityManager.INSTANCE.delete(TransactionTag.class, tag.getId());
             }
+            log.info("Cleared all tags for transaction " + transactionId);
         } catch (Exception e) {
             log.severe("Error clearing transaction tags: " + e.getMessage());
         }
@@ -132,10 +126,8 @@ public class TagService {
     public boolean deleteTag(int tagId) {
         try {
             List<TransactionTag> transactionTags = EntityManager.INSTANCE.get(TransactionTag.class, Map.of("tag_id", tagId));
-            if (transactionTags != null) {
-                for (TransactionTag tt : transactionTags) {
-                    EntityManager.INSTANCE.delete(TransactionTag.class, tt.getId());
-                }
+            for (TransactionTag tt : transactionTags) {
+                EntityManager.INSTANCE.delete(TransactionTag.class, tt.getId());
             }
             boolean deleted = EntityManager.INSTANCE.delete(Tag.class, tagId);
             if (deleted) {

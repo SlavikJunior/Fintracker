@@ -1,29 +1,50 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ page import="java.util.List,com.slavikjunior.models.*,java.text.SimpleDateFormat,java.math.BigDecimal,java.util.*" %>
-<%
-    // Данные из request с проверками
-    List<TransactionGroup> transactionGroups = (List<TransactionGroup>) request.getAttribute("transactionGroups");
-    if (transactionGroups == null) transactionGroups = Collections.emptyList();
+<c:set var="transactionGroups" value="${requestScope.transactionGroups}" />
+<c:if test="${empty transactionGroups}">
+    <c:set var="transactionGroups" value="<%= Collections.emptyList() %>" />
+</c:if>
 
-    BigDecimal totalIncome = (BigDecimal) request.getAttribute("totalIncome");
-    BigDecimal totalExpense = (BigDecimal) request.getAttribute("totalExpense");
-    BigDecimal totalBalance = (BigDecimal) request.getAttribute("totalBalance");
+<c:set var="totalIncome" value="${requestScope.totalIncome}" />
+<c:if test="${empty totalIncome}">
+    <c:set var="totalIncome" value="<%= BigDecimal.ZERO %>" />
+</c:if>
 
-    List<String> incomeCategories = (List<String>) request.getAttribute("incomeCategories");
-    List<String> expenseCategories = (List<String>) request.getAttribute("expenseCategories");
-    List<String> allCategories = (List<String>) request.getAttribute("allCategories");
-    List<Tag> userTags = (List<Tag>) request.getAttribute("userTags");
+<c:set var="totalExpense" value="${requestScope.totalExpense}" />
+<c:if test="${empty totalExpense}">
+    <c:set var="totalExpense" value="<%= BigDecimal.ZERO %>" />
+</c:if>
 
-    // Форматы дат
-    SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm");
-    SimpleDateFormat dayFormat = new SimpleDateFormat("dd.MM.yyyy");
-    SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM yyyy", new Locale("ru"));
+<c:set var="totalBalance" value="${requestScope.totalBalance}" />
+<c:if test="${empty totalBalance}">
+    <c:set var="totalBalance" value="<%= BigDecimal.ZERO %>" />
+</c:if>
 
-    // Устанавливаем в request для компонентов
-    request.setAttribute("dateFormat", dateFormat);
-    request.setAttribute("dayFormat", dayFormat);
-    request.setAttribute("monthFormat", monthFormat);
-%>
+<c:set var="incomeCategories" value="${requestScope.incomeCategories}" />
+<c:if test="${empty incomeCategories}">
+    <c:set var="incomeCategories" value="<%= Collections.emptyList() %>" />
+</c:if>
+
+<c:set var="expenseCategories" value="${requestScope.expenseCategories}" />
+<c:if test="${empty expenseCategories}">
+    <c:set var="expenseCategories" value="<%= Collections.emptyList() %>" />
+</c:if>
+
+<c:set var="allCategories" value="${requestScope.allCategories}" />
+<c:if test="${empty allCategories}">
+    <c:set var="allCategories" value="<%= Collections.emptyList() %>" />
+</c:if>
+
+<c:set var="userTags" value="${requestScope.userTags}" />
+<c:if test="${empty userTags}">
+    <c:set var="userTags" value="<%= Collections.emptyList() %>" />
+</c:if>
+
+<c:set var="dateFormat" value="<%= new SimpleDateFormat(\"dd.MM.yyyy HH:mm\") %>" />
+<c:set var="dayFormat" value="<%= new SimpleDateFormat(\"dd.MM.yyyy\") %>" />
+<c:set var="monthFormat" value="<%= new SimpleDateFormat(\"MMMM yyyy\", new Locale(\"ru\")) %>" />
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>

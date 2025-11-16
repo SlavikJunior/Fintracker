@@ -42,7 +42,7 @@ public class TransactionWithTags implements TransactionItem {
     public String getType() { return type; }
     @Override
     public List<String> getTagNames() {
-        return tags.stream().map(Tag::getName).collect(java.util.stream.Collectors.toList());
+        return tags.stream().map(Tag::getName).toList();
     }
 
     public List<Tag> getTags() { return tags; }

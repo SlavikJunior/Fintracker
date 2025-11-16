@@ -1,15 +1,17 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.util.List" %>
-<%
-    List<String> incomeCategories = (List<String>) request.getAttribute("incomeCategories");
-    List<String> expenseCategories = (List<String>) request.getAttribute("expenseCategories");
-    if (incomeCategories == null) incomeCategories = java.util.Collections.emptyList();
-    if (expenseCategories == null) expenseCategories = java.util.Collections.emptyList();
-%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<c:set var="incomeCategories" value="${requestScope.incomeCategories}" />
+<c:if test="${empty incomeCategories}">
+    <c:set var="incomeCategories" value="<%= java.util.Collections.emptyList() %>" />
+</c:if>
+<c:set var="expenseCategories" value="${requestScope.expenseCategories}" />
+<c:if test="${empty expenseCategories}">
+    <c:set var="expenseCategories" value="<%= java.util.Collections.emptyList() %>" />
+</c:if>
 
 <h2><i class="fas fa-plus-circle"></i> Добавить транзакцию</h2>
 <form action="${pageContext.request.contextPath}/transactions" method="post">
-    <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
+    <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
 
     <div class="form-group">
         <label for="type"><i class="fas fa-exchange-alt"></i> Тип операции:</label>
@@ -29,14 +31,14 @@
         <select id="category" name="category" required>
             <option value="">Выберите категорию</option>
             <optgroup label="Доходы" id="income-categories">
-                <% for (String category : incomeCategories) { %>
-                <option value="<%= category %>"><%= category %></option>
-                <% } %>
+                <c:forEach items="${incomeCategories}" var="category">
+                    <option value="${category}">${category}</option>
+                </c:forEach>
             </optgroup>
             <optgroup label="Расходы" id="expense-categories">
-                <% for (String category : expenseCategories) { %>
-                <option value="<%= category %>"><%= category %></option>
-                <% } %>
+                <c:forEach items="${expenseCategories}" var="category">
+                    <option value="${category}">${category}</option>
+                </c:forEach>
             </optgroup>
         </select>
     </div>

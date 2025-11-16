@@ -28,29 +28,28 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException, ServletException {
+            throws IOException {
 
         String login = req.getParameter("login");
         String password = req.getParameter("password");
 
-        log.info("🔧 LoginServlet: Auth attempt for " + login);
+        log.info("LoginServlet: Auth attempt for " + login);
 
         try {
             User user = authService.authenticate(login, password);
             if (user == null) {
-                log.warning("❌ Invalid credentials for: " + login);
+                log.warning("Invalid credentials for: " + login);
                 resp.sendRedirect(req.getContextPath() + "/login?error=true");
                 return;
             }
 
-            log.info("✅ User authenticated successfully, ID: " + user.getId());
+            log.info("User authenticated successfully, ID: " + user.getId());
             HttpSession session = req.getSession(true);
             session.setAttribute(SessionConstants.USER_ID, user.getId());
             session.setAttribute(SessionConstants.USER_LOGIN, user.getLogin());
             resp.sendRedirect(req.getContextPath() + "/main");
-            log.info("redirect to " + req.getContextPath() + "/main");
         } catch (Exception e) {
-            log.severe("💥 LoginServlet: Error during authentication - " + e.getMessage());
+            log.severe("LoginServlet: Error during authentication - " + e.getMessage());
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }

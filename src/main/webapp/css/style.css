@@ -1,4 +1,3 @@
-/* Новая цветовая палитра */
 :root {
     --blue-light: #a1c8f2;
     --blue-medium: #83b0e1;
@@ -10,8 +9,8 @@
     --orange-regular: #ff9e2a;
     --orange-dark: #ff7a00;
     --orange-darker: #d65c00;
-    --border-color: #4676c2; /* Тёмно-синий для рамок */
-    --border-light: #a1c8f2; /* Светло-синий для второстепенных рамок */
+    --border-color: #4676c2;
+    --border-light: #a1c8f2;
 }
 
 body {
@@ -23,7 +22,6 @@ body {
     color: #333;
 }
 
-/* Рамки для всех блоков */
 .header {
     background: white;
     padding: 20px;
@@ -116,7 +114,6 @@ body {
     border: 2px solid var(--border-color);
 }
 
-/* Стили для ссылок */
 a {
     color: var(--blue-dark);
     text-decoration: none;
@@ -141,7 +138,6 @@ a:hover {
     text-decoration: underline;
 }
 
-/* Кнопки */
 .btn {
     padding: 12px;
     border: none;
@@ -190,7 +186,6 @@ a:hover {
     font-size: 14px;
 }
 
-/* Кнопка управления тегами - выделенная */
 .manage-tags-btn {
     background: var(--blue-medium) !important;
     border: 2px solid var(--blue-dark) !important;
@@ -202,7 +197,6 @@ a:hover {
     border-color: var(--blue-darker) !important;
 }
 
-/* Сообщения */
 .error-message {
     background: #ffebee;
     color: var(--orange-darker);
@@ -227,7 +221,6 @@ a:hover {
     border: 1px solid var(--blue-medium);
 }
 
-/* Аутентификация */
 .auth-page {
     min-height: 100vh;
     display: flex;
@@ -241,7 +234,6 @@ a:hover {
     margin-top: 20px;
 }
 
-/* Формы */
 .form-group {
     margin-bottom: 20px;
 }
@@ -287,14 +279,12 @@ input:focus, select:focus {
     color: var(--blue-dark);
 }
 
-/* Основной контейнер */
 .container {
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 20px;
 }
 
-/* Цвета сумм */
 .income-amount, .balance-positive {
     color: var(--blue-darker);
     font-weight: bold;
@@ -309,7 +299,6 @@ input:focus, select:focus {
     color: #7f8c8d;
 }
 
-/* Бейджи */
 .income-badge, .expense-badge {
     display: flex;
     align-items: center;
@@ -332,7 +321,6 @@ input:focus, select:focus {
     border: 1px solid var(--orange-medium);
 }
 
-/* Теги с индивидуальными цветами */
 .tag-badge {
     display: inline-block;
     padding: 2px 8px;
@@ -344,7 +332,6 @@ input:focus, select:focus {
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Стили для чекбоксов тегов в модальном окне */
 .tag-checkboxes {
     display: flex;
     flex-wrap: wrap;
@@ -403,7 +390,6 @@ input:focus, select:focus {
     text-align: center;
 }
 
-/* Модальное окно */
 .modal {
     display: none;
     position: fixed;
@@ -434,7 +420,6 @@ input:focus, select:focus {
     margin-top: 20px;
 }
 
-/* Действия в таблице */
 .actions {
     display: flex;
     gap: 5px;
@@ -480,7 +465,6 @@ input:focus, select:focus {
     font-size: 0.9em;
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
     .container {
         grid-template-columns: 1fr;

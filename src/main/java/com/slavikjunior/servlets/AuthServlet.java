@@ -20,7 +20,7 @@ public class AuthServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         boolean isLoggedIn = session != null && session.getAttribute(SessionConstants.USER_ID) != null;
 
-        log.info("🔧 AuthServlet: isLoggedIn = " + isLoggedIn);
+        log.info("AuthServlet: isLoggedIn = " + isLoggedIn);
 
         if (isLoggedIn) {
             response.sendRedirect(request.getContextPath() + "/main");

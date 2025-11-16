@@ -3,33 +3,34 @@ package com.slavikjunior.services;
 import com.slavikjunior.models.User;
 import com.slavikjunior.deorm.orm.EntityManager;
 import com.slavikjunior.util.PasswordHashUtil;
-
+import com.slavikjunior.util.AppLogger;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class AuthService {
+    private static final Logger log = AppLogger.get(AuthService.class);
 
     public User authenticate(String login, String password) {
         try {
-            System.out.println("🔧 Auth attempt for: " + login);
+            log.info("Auth attempt for: " + login);
             User user = EntityManager.INSTANCE.getUnique(User.class, Map.of("login", login));
             if (user != null) {
-                System.out.println("✅ User found: " + user.getLogin() + ", ID: " + user.getId());
+                log.info("User found: " + user.getLogin() + ", ID: " + user.getId());
 
-                String hashedPassword = PasswordHashUtil.hashPassword(password);
+                String hashedPassword = PasswordHashUtil.hashPassword(password, user.getSalt());
                 if (user.getPassword().equals(hashedPassword)) {
-                    System.out.println("✅ Password correct");
+                    log.info("Password correct");
                     return user;
                 } else {
-                    System.out.println("❌ Password incorrect");
+                    log.warning("Password incorrect");
                 }
             } else {
-                System.out.println("❌ User not found: " + login);
+                log.warning("User not found: " + login);
             }
             return null;
         } catch (Exception e) {
-            System.err.println("💥 Auth exception: " + e.getMessage());
-            e.printStackTrace();
+            log.severe("Auth exception: " + e.getMessage());
             return null;
         }
     }
@@ -37,9 +38,9 @@ public class AuthService {
     public boolean isLoginExists(String login) {
         try {
             List<User> users = EntityManager.INSTANCE.get(User.class, Map.of("login", login));
-            return users != null && !users.isEmpty();
+            return !users.isEmpty();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.severe("Error checking login: " + e.getMessage());
             return false;
         }
     }
@@ -47,9 +48,9 @@ public class AuthService {
     public boolean isEmailExists(String email) {
         try {
             List<User> users = EntityManager.INSTANCE.get(User.class, Map.of("email", email));
-            return users != null && !users.isEmpty();
+            return !users.isEmpty();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.severe("Error checking email: " + e.getMessage());
             return false;
         }
     }

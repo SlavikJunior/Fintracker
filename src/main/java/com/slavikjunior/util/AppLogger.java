@@ -1,5 +1,6 @@
 package com.slavikjunior.util;
 
+import java.io.IOException;
 import java.util.logging.*;
 
 public class AppLogger {
@@ -8,10 +9,10 @@ public class AppLogger {
 
     static {
         LogManager.getLogManager().reset();
-        ConsoleHandler handler = new ConsoleHandler();
-        handler.setLevel(Level.ALL);
+        ConsoleHandler consoleHandler = new ConsoleHandler();
+        consoleHandler.setLevel(Level.ALL);
 
-        handler.setFormatter(new SimpleFormatter() {
+        consoleHandler.setFormatter(new SimpleFormatter() {
             private static final String format = "[%1$tT] [%2$s] %3$s %n";
 
             @Override
@@ -23,8 +24,17 @@ public class AppLogger {
             }
         });
 
+        try {
+            FileHandler fileHandler = new FileHandler("app.log", true);
+            fileHandler.setLevel(Level.ALL);
+            fileHandler.setFormatter(new SimpleFormatter());
+            Logger.getLogger("").addHandler(fileHandler);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to initialize file logger", e);
+        }
+
         Logger rootLogger = Logger.getLogger("");
-        rootLogger.addHandler(handler);
+        rootLogger.addHandler(consoleHandler);
         rootLogger.setLevel(DEFAULT_LEVEL);
     }
 

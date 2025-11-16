@@ -17,16 +17,15 @@ public class TransactionService {
 
     public boolean createTransaction(int userId, BigDecimal amount, String category, String description, String type) {
         try {
-            if ("INCOME".equals(type)) {
-                IncomeTransaction transaction = new IncomeTransaction(0, userId, amount, category, description);
-                EntityManager.INSTANCE.create(transaction);
-            } else {
-                ExpenseTransaction transaction = new ExpenseTransaction(0, userId, amount, category, description);
-                EntityManager.INSTANCE.create(transaction);
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                log.warning("Invalid amount: " + amount);
+                return false;
             }
+            Transaction transaction = new Transaction(0, userId, amount, category, description, type.toUpperCase());
+            EntityManager.INSTANCE.create(transaction);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.severe("Error creating transaction: " + e.getMessage());
             return false;
         }
     }
@@ -35,33 +34,17 @@ public class TransactionService {
         List<TransactionItem> allTransactions = new ArrayList<>();
 
         try {
-            // Доходы
-            List<IncomeTransaction> incomes = EntityManager.INSTANCE.get(IncomeTransaction.class, Map.of("user_id", userId));
-            if (incomes != null) {
-                for (IncomeTransaction income : incomes) {
-                    List<Tag> tags = tagService.getTagsForTransaction(income.getId(), "INCOME");
-                    allTransactions.add(new TransactionWithTags(
-                            income.getId(), income.getUserId(), income.getAmount(),
-                            income.getCategory(), income.getDescription(), income.getCreatedAt(),
-                            "INCOME", tags
-                    ));
-                }
+            List<Transaction> transactions = EntityManager.INSTANCE.get(Transaction.class, Map.of("user_id", userId));
+
+            for (Transaction transaction : transactions) {
+                List<Tag> tags = tagService.getTagsForTransaction(transaction.getId());
+                allTransactions.add(new TransactionWithTags(
+                        transaction.getId(), transaction.getUserId(), transaction.getAmount(),
+                        transaction.getCategory(), transaction.getDescription(), transaction.getCreatedAt(),
+                        transaction.getType(), tags
+                ));
             }
 
-            // Расходы
-            List<ExpenseTransaction> expenses = EntityManager.INSTANCE.get(ExpenseTransaction.class, Map.of("user_id", userId));
-            if (expenses != null) {
-                for (ExpenseTransaction expense : expenses) {
-                    List<Tag> tags = tagService.getTagsForTransaction(expense.getId(), "EXPENSE");
-                    allTransactions.add(new TransactionWithTags(
-                            expense.getId(), expense.getUserId(), expense.getAmount(),
-                            expense.getCategory(), expense.getDescription(), expense.getCreatedAt(),
-                            "EXPENSE", tags
-                    ));
-                }
-            }
-
-            // Сортировка по дате (новые сверху)
             allTransactions.sort((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()));
 
         } catch (Exception e) {
@@ -90,7 +73,7 @@ public class TransactionService {
         if (startDate != null) {
             Timestamp startTimestamp = Timestamp.valueOf(startDate.atStartOfDay());
             filteredTransactions = filteredTransactions.stream()
-                    .filter(t -> t.getCreatedAt().after(startTimestamp) || t.getCreatedAt().equals(startTimestamp))
+                    .filter(t -> !t.getCreatedAt().before(startTimestamp))
                     .collect(Collectors.toList());
         }
 
@@ -104,44 +87,23 @@ public class TransactionService {
         return filteredTransactions;
     }
 
-    public boolean deleteTransaction(String type, int transactionId) {
+    public boolean deleteTransaction(int transactionId) {
         try {
-            if ("INCOME".equals(type)) {
-                return EntityManager.INSTANCE.delete(IncomeTransaction.class, transactionId);
-            } else {
-                return EntityManager.INSTANCE.delete(ExpenseTransaction.class, transactionId);
-            }
+            return EntityManager.INSTANCE.delete(Transaction.class, transactionId);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.severe("Error deleting transaction: " + e.getMessage());
             return false;
         }
     }
 
-    public List<String> getIncomeCategories() {
+    public List<String> getCategories(String type) {
         try {
-            List<IncomeCategory> categories = EntityManager.INSTANCE.get(IncomeCategory.class, null);
-            if (categories != null && !categories.isEmpty()) {
-                return categories.stream().map(IncomeCategory::getName).collect(Collectors.toList());
-            } else {
-                return Arrays.asList("Зарплата", "Фриланс", "Инвестиции", "Подарки", "Прочее");
-            }
+            List<Category> categories = EntityManager.INSTANCE.get(Category.class, Map.of("type", type.toUpperCase()));
+            return categories.stream().map(Category::getName).collect(Collectors.toList());
         } catch (Exception e) {
-            System.err.println("Error loading income categories: " + e.getMessage());
-            return Arrays.asList("Зарплата", "Фриланс", "Инвестиции", "Подарки", "Прочее");
-        }
-    }
-
-    public List<String> getExpenseCategories() {
-        try {
-            List<ExpenseCategory> categories = EntityManager.INSTANCE.get(ExpenseCategory.class, null);
-            if (categories != null && !categories.isEmpty()) {
-                return categories.stream().map(ExpenseCategory::getName).collect(Collectors.toList());
-            } else {
-                return Arrays.asList("Еда", "Транспорт", "Жилье", "Развлечения", "Здоровье", "Одежда", "Образование", "Другое");
-            }
-        } catch (Exception e) {
-            System.err.println("Error loading expense categories: " + e.getMessage());
-            return Arrays.asList("Еда", "Транспорт", "Жилье", "Развлечения", "Здоровье", "Одежда", "Образование", "Другое");
+            log.severe("Error loading categories: " + e.getMessage());
+            return type.equals("INCOME") ? Arrays.asList("Зарплата", "Фриланс", "Инвестиции", "Подарки", "Прочее")
+                    : Arrays.asList("Еда", "Транспорт", "Жилье", "Развлечения", "Здоровье", "Одежда", "Образование", "Другое");
         }
     }
 }

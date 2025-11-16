@@ -7,19 +7,22 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.logging.Logger;
+
+import com.slavikjunior.util.AppLogger;
 
 @WebServlet(urlPatterns = "/logout")
 public class LogoutServlet extends HttpServlet {
+    private static final Logger log = AppLogger.get(LogoutServlet.class);
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        System.out.println("🔧 Logout requested");
+        log.info("Logout requested");
 
-        // Инвалидируем сессию
         HttpSession session = req.getSession(false);
         if (session != null) {
             session.invalidate();
-            System.out.println("✅ Session invalidated");
+            log.info("Session invalidated");
         }
 
         resp.sendRedirect(req.getContextPath() + "/auth");

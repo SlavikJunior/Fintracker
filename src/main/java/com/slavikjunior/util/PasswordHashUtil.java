@@ -5,10 +5,10 @@ import java.security.NoSuchAlgorithmException;
 
 public class PasswordHashUtil {
 
-    public static String hashPassword(String password) {
+    public static String hashPassword(String password, String salt) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hashedBytes = md.digest(password.getBytes());
+            byte[] hashedBytes = md.digest((password + salt).getBytes());
 
             StringBuilder sb = new StringBuilder();
             for (byte b : hashedBytes) {

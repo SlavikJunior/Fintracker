@@ -18,10 +18,9 @@ public class TagServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String transactionIdStr = req.getParameter("transactionId");
-        String transactionType = req.getParameter("transactionType");
         String[] tagIds = req.getParameterValues("tagIds");
 
-        if (transactionIdStr == null || transactionType == null) {
+        if (transactionIdStr == null) {
             resp.sendRedirect(req.getContextPath() + "/main?error=invalid_data");
             return;
         }
@@ -29,12 +28,12 @@ public class TagServlet extends HttpServlet {
         try {
             int transactionId = Integer.parseInt(transactionIdStr);
 
-            tagService.clearTransactionTags(transactionId, transactionType);
+            tagService.clearTransactionTags(transactionId);
 
             if (tagIds != null) {
                 for (String tagIdStr : tagIds) {
                     int tagId = Integer.parseInt(tagIdStr);
-                    tagService.addTagToTransaction(transactionId, transactionType, tagId);
+                    tagService.addTagToTransaction(transactionId, tagId);
                 }
                 log.info("Added " + tagIds.length + " tags to transaction " + transactionId);
             }

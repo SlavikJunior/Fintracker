@@ -1,50 +1,36 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%
-    String error = request.getParameter("error");
-    String success = request.getParameter("success");
-%>
+<c:set var="error" value="${param.error}" />
+<c:set var="success" value="${param.success}" />
 
-<% if (error != null) { %>
-<div class="error-message">
-    <i class="fas fa-exclamation-triangle"></i>
-    <%
-        String errorMessage = "";
-        switch(error) {
-            case "invalid_data": errorMessage = "Неверные данные транзакции"; break;
-            case "invalid_amount": errorMessage = "Неверная сумма"; break;
-            case "db_error": errorMessage = "Ошибка базы данных"; break;
-            case "invalid_id": errorMessage = "Неверный ID транзакции"; break;
-            case "delete_failed": errorMessage = "Ошибка при удалении"; break;
-            case "invalid_tag_name": errorMessage = "Неверное название тега"; break;
-            case "invalid_tag_id": errorMessage = "Неверный ID тега"; break;
-            case "tag_creation_failed": errorMessage = "Ошибка при создании тега"; break;
-            case "tag_deletion_failed": errorMessage = "Ошибка при удалении тега"; break;
-            case "tag_already_exists": errorMessage = "Тег с таким названием уже существует"; break;
-            case "tag_update_failed": errorMessage = "Ошибка при обновлении тегов"; break;
-            default: errorMessage = "Произошла ошибка";
-        }
-    %>
-    <%= errorMessage %>
-</div>
-<% } %>
+<c:if test="${not empty error}">
+    <div class="error-message">
+        <i class="fas fa-exclamation-triangle"></i>
+        <c:choose>
+            <c:when test="${error == 'invalid_data'}">Неверные данные транзакции</c:when>
+            <c:when test="${error == 'invalid_amount'}">Неверная сумма</c:when>
+            <c:when test="${error == 'db_error'}">Ошибка базы данных</c:when>
+            <c:when test="${error == 'invalid_id'}">Неверный ID транзакции</c:when>
+            <c:when test="${error == 'delete_failed'}">Ошибка при удалении</c:when>
+            <c:when test="${error == 'invalid_tag_name'}">Неверное название тега</c:when>
+            <c:when test="${error == 'invalid_tag_id'}">Неверный ID тега</c:when>
+            <c:when test="${error == 'tag_creation_failed'}">Ошибка при создании тега</c:when>
+            <c:when test="${error == 'tag_deletion_failed'}">Ошибка при удалении тега</c:when>
+            <c:when test="${error == 'tag_already_exists'}">Тег с таким названием уже существует</c:when>
+            <c:when test="${error == 'tag_update_failed'}">Ошибка при обновлении тегов</c:when>
+            <c:otherwise>Произошла ошибка</c:otherwise>
+        </c:choose>
+    </div>
+</c:if>
 
-<% if (success != null) { %>
-<div class="success-message">
-    <i class="fas fa-check-circle"></i>
-    <%
-        String successMessage = "";
-        if ("true".equals(success)) {
-            successMessage = "Транзакция успешно добавлена";
-        } else if ("deleted".equals(success)) {
-            successMessage = "Транзакция удалена";
-        } else if ("tag_created".equals(success)) {
-            successMessage = "Тег успешно создан";
-        } else if ("tag_deleted".equals(success)) {
-            successMessage = "Тег успешно удален";
-        } else if ("tags_updated".equals(success)) {
-            successMessage = "Теги транзакции обновлены";
-        }
-    %>
-    <%= successMessage %>
-</div>
-<% } %>
+<c:if test="${not empty success}">
+    <div class="success-message">
+        <i class="fas fa-check-circle"></i>
+        <c:choose>
+            <c:when test="${success == 'true'}">Транзакция успешно добавлена</c:when>
+            <c:when test="${success == 'deleted'}">Транзакция удалена</c:when>
+            <c:when test="${success == 'tag_created'}">Тег успешно создан</c:when>
+            <c:when test="${success == 'tag_deleted'}">Тег успешно удален</c:when>
+            <c:when test="${success == 'tags_updated'}">Теги транзакции обновлены</c:when>
+        </c:choose>
+    </div>
+</c:if>

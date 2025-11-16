@@ -2,20 +2,24 @@ package com.slavikjunior.util;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import java.util.logging.Logger;
+
+import com.slavikjunior.util.AppLogger;
 
 public class UserIsLoggedChecker {
+    private static final Logger log = AppLogger.get(UserIsLoggedChecker.class);
 
     public static boolean isLoggedIn(HttpServletRequest req) {
         HttpSession session = req.getSession(false);
         if (session == null) {
-            System.out.println("🔍 No session found");
+            log.info("No session found");
             return false;
         }
         if (session.getAttribute(SessionConstants.USER_ID) != null) {
-            System.out.println("✅ User is logged in (session)");
+            log.info("User is logged in (session)");
             return true;
         }
-        System.out.println("❌ User not logged in (session)");
+        log.warning("User not logged in (session)");
         return false;
     }
 
@@ -27,7 +31,7 @@ public class UserIsLoggedChecker {
                 return userId;
             }
         }
-        System.out.println("❌ No userId in session");
+        log.warning("No userId in session");
         return -1;
     }
 

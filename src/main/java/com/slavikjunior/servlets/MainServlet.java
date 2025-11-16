@@ -149,12 +149,11 @@ public class MainServlet extends HttpServlet {
     }
 
     private void setupCategoriesAndTags(HttpServletRequest request, int userId) {
-        request.setAttribute("incomeCategories", transactionService.getIncomeCategories());
-        request.setAttribute("expenseCategories", transactionService.getExpenseCategories());
+        request.setAttribute("incomeCategories", transactionService.getCategories("INCOME"));
+        request.setAttribute("expenseCategories", transactionService.getCategories("EXPENSE"));
 
-        List<String> allCategories = new ArrayList<>();
-        allCategories.addAll(transactionService.getIncomeCategories());
-        allCategories.addAll(transactionService.getExpenseCategories());
+        List<String> allCategories = new ArrayList<>(transactionService.getCategories("INCOME"));
+        allCategories.addAll(transactionService.getCategories("EXPENSE"));
         request.setAttribute("allCategories", allCategories);
 
         List<Tag> userTags = tagService.getUserTags(userId);

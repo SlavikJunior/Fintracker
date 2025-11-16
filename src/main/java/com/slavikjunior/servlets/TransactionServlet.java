@@ -27,13 +27,12 @@ public class TransactionServlet extends HttpServlet {
         }
     }
 
-    // TransactionServlet.java - в методе addTransaction
     private void addTransaction(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         int userId = getUserId(req);
         String amountStr = req.getParameter("amount");
         String category = req.getParameter("category");
         String description = req.getParameter("description");
-        String type = req.getParameter("type"); // Новый параметр
+        String type = req.getParameter("type");
 
         if (amountStr == null || amountStr.isEmpty() || category == null || category.isEmpty() || type == null) {
             resp.sendRedirect(req.getContextPath() + "/main?error=invalid_data");
@@ -54,19 +53,17 @@ public class TransactionServlet extends HttpServlet {
         }
     }
 
-    // TransactionServlet.java - обновляем метод deleteTransaction
     private void deleteTransaction(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String transactionIdStr = req.getParameter("transactionId");
-        String transactionType = req.getParameter("transactionType"); // Новый параметр
 
-        if (transactionIdStr == null || transactionIdStr.isEmpty() || transactionType == null) {
+        if (transactionIdStr == null || transactionIdStr.isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/main?error=invalid_id");
             return;
         }
 
         try {
             int transactionId = Integer.parseInt(transactionIdStr);
-            boolean success = transactionService.deleteTransaction(transactionType, transactionId);
+            boolean success = transactionService.deleteTransaction(transactionId);
 
             if (success) {
                 resp.sendRedirect(req.getContextPath() + "/main?success=deleted");

@@ -11,9 +11,9 @@
 <body class="auth-page">
 <div class="auth-container">
     <h2><i class="fas fa-user-plus"></i> Регистрация</h2>
-    <% if (request.getAttribute("errorMessage") != null) { %>
-    <div class="error-message"><i class="fas fa-exclamation-circle"></i> <%= request.getAttribute("errorMessage") %></div>
-    <% } %>
+    <c:if test="${not empty requestScope.errorMessage}">
+        <div class="error-message"><i class="fas fa-exclamation-circle"></i> ${requestScope.errorMessage}</div>
+    </c:if>
     <form action="${pageContext.request.contextPath}/register" method="post">
         <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
         <div class="form-group">
